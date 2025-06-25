@@ -3,7 +3,7 @@ provider "azurerm" {
 }
 
 locals {
-  name        = "app"
+  name        = "app-firewall"
   environment = "test"
 }
 
@@ -44,7 +44,7 @@ module "name_specific_subnet" {
   source               = "terraform-az-modules/subnet/azure"
   version              = "1.0.0"
   environment          = "test"
-  label_order          = ["name", "environment", ]
+  label_order          = ["name", "environment", "location"]
   resource_group_name  = module.resource_group.resource_group_name
   location             = module.resource_group.resource_group_location
   virtual_network_name = module.vnet.vnet_name
@@ -78,7 +78,7 @@ module "log-analytics" {
   version                     = "1.0.0"
   name                        = local.name
   environment                 = local.environment
-  label_order                 = ["name", "environment"]
+  label_order                 = ["name", "environment", "location"]
   log_analytics_workspace_sku = "PerGB2018"
   resource_group_name         = module.resource_group.resource_group_name
   location                    = module.resource_group.resource_group_location
@@ -96,22 +96,14 @@ module "firewall" {
   resource_group_name        = module.resource_group.resource_group_name
   location                   = module.resource_group.resource_group_location
   subnet_id                  = module.name_specific_subnet.subnet_ids["AzureFirewallSubnet"]
-  public_ip_names            = ["ingress", "vnet"] // Name of public ips you want to create.
+  public_ip_prefix_enable    = true
+  prefix_public_ip_names     = ["test-1", "test-2"]
+  public_ip_prefix_length    = 31
+  enable_prefix_subnet       = true
   firewall_enable            = true
   policy_rule_enabled        = true
-  enable_diagnostic          = true
+  enable_diagnostic          = false
   log_analytics_workspace_id = module.log-analytics.workspace_id
-  logs = [
-    {
-      category = "AzureFirewallApplicationRule"
-    },
-    {
-      category = "AzureFirewallNetworkRule"
-    },
-    {
-      category = "AzureFirewallDnsProxy"
-    },
-  ]
 
   application_rule_collection = [
     {
@@ -172,18 +164,55 @@ module "firewall" {
 
   nat_rule_collection = [
     {
-      name        = "example_nat_policy"
-      priority    = 100
-      description = "Redirects traffic to internal web server"
+      name     = "example_nat_policy-1"
+      priority = "101"
       rules = [
         {
-          name                  = "web_server_nat"
-          protocols             = ["TCP"]
-          source_addresses      = ["10.0.1.0"]                           # Replace "*" with a valid IP address
-          destination_addresses = [module.firewall.public_ip_address[1]] # Replace "*" with a valid IP address
-          destination_ports     = ["8080"]
-          translated_address    = "10.0.2.0" # Replace with the actual translated address
-          translated_port       = "80"
+          name                = "http"
+          protocols           = ["TCP"]
+          source_addresses    = ["*"] // ["X.X.X.X"]
+          destination_ports   = ["80"]
+          source_addresses    = ["*"]
+          translated_port     = "80"
+          translated_address  = "10.1.1.1"                                  #provide private ip address to translate
+          destination_address = module.firewall.prefix_public_ip_address[1] //Public ip associated with firewall. Here index 1 indicates 'vnet ip' (from public_ip_names     = ["ingress" , "vnet"])
+
+        },
+        {
+          name                = "https"
+          protocols           = ["TCP"]
+          destination_ports   = ["443"]
+          source_addresses    = ["*"]
+          translated_port     = "443"
+          translated_address  = "10.1.1.1"                                  #provide private ip address to translate
+          destination_address = module.firewall.prefix_public_ip_address[1] //Public ip associated with firewall
+
+        }
+      ]
+    },
+
+    {
+      name     = "example-nat-policy-2"
+      priority = "100"
+      rules = [
+        {
+          name                = "http"
+          protocols           = ["TCP"]
+          source_addresses    = ["*"] // ["X.X.X.X"]
+          destination_ports   = ["80"]
+          translated_port     = "80"
+          translated_address  = "10.1.1.2"                                  #provide private ip address to translate
+          destination_address = module.firewall.prefix_public_ip_address[0] //Public ip associated with firewall.Here index 0 indicates 'ingress ip' (from public_ip_names     = ["ingress" , "vnet"])
+
+        },
+        {
+          name                = "https"
+          protocols           = ["TCP"]
+          source_addresses    = ["*"] // ["X.X.X.X"]
+          destination_ports   = ["443"]
+          translated_port     = "443"
+          translated_address  = "10.1.1.2"                                  #provide private ip address to translate
+          destination_address = module.firewall.prefix_public_ip_address[0] //Public ip associated with firewall
         }
       ]
     }

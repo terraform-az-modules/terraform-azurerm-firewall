@@ -22,3 +22,11 @@ output "public_ip_id" {
 output "public_ip_address" {
   value = module.firewall.public_ip_address
 }
+
+output "prefix_public_ip_address" {
+  value = module.firewall.prefix_public_ip_address
+}
+
+output "prefix_public_ip_id" {
+  value = module.firewall.prefix_public_ip_id
+}
