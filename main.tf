@@ -14,25 +14,9 @@ module "labels" {
   extra_tags      = var.extra_tags
 }
 
-##----------------------------------------------------------------------------- 
-## Below resource will create Public ip in your environment.
-## These are individual public ips i.e. does not belong to prefix list. 
-## This public ip will be attached to firewall.    
-##-----------------------------------------------------------------------------
-resource "azurerm_public_ip" "public_ip" {
-  count                = var.enabled && var.firewall_enable ? length(var.public_ip_names) : 0
-  name                 = format(var.resource_position_prefix ? "ip-%s-%s" : "%s-%s-ip", local.name, var.public_ip_names[count.index])
-  location             = var.location
-  resource_group_name  = var.resource_group_name
-  allocation_method    = var.public_ip_allocation_method
-  sku                  = var.public_ip_sku
-  ddos_protection_mode = "VirtualNetworkInherited"
-  tags                 = module.labels.tags
-}
 
 ##----------------------------------------------------------------------------- 
-## Below resource will create Public ip prefix list in your environment.
-## Prefix Public ip will be allocated from this prefix list.    
+# Firewall Public IP Prefix – Deploys Azure Firewall and its related resources
 ##-----------------------------------------------------------------------------
 resource "azurerm_public_ip_prefix" "pip-prefix" {
   count               = var.enabled && var.firewall_enable && var.public_ip_prefix_enable ? 1 : 0
@@ -45,9 +29,24 @@ resource "azurerm_public_ip_prefix" "pip-prefix" {
   tags                = module.labels.tags
 }
 
-##----------------------------------------------------------------------------- 
-## Below resource will create Public ip in your environment.
-## These public ip will be allocated from prefix list created above. 
+
+##-----------------------------------------------------------------------------
+# Azure Public IP Module – Creates public IP addresses for Azure Firewall
+##-----------------------------------------------------------------------------
+resource "azurerm_public_ip" "public_ip" {
+  count                = var.enabled && var.firewall_enable ? length(var.public_ip_names) : 0
+  name                 = format(var.resource_position_prefix ? "ip-%s-%s" : "%s-%s-ip", local.name, var.public_ip_names[count.index])
+  location             = var.location
+  resource_group_name  = var.resource_group_name
+  allocation_method    = var.public_ip_allocation_method
+  sku                  = var.public_ip_sku
+  public_ip_prefix_id  = var.public_ip_prefix_enable ? azurerm_public_ip_prefix.pip-prefix[0].id : null
+  ddos_protection_mode = "VirtualNetworkInherited"
+  tags                 = module.labels.tags
+}
+
+##-----------------------------------------------------------------------------
+# Azure Public IP Module – Creates public IP addresses from prefix for Azure Firewall
 ##-----------------------------------------------------------------------------
 resource "azurerm_public_ip" "prefix_public_ip" {
   count                = var.enabled && var.firewall_enable && var.public_ip_prefix_enable ? length(var.prefix_public_ip_names) : 0
@@ -61,10 +60,8 @@ resource "azurerm_public_ip" "prefix_public_ip" {
   tags                 = module.labels.tags
 }
 
-
-##----------------------------------------------------------------------------- 
-## Below resource will deploy firewall in environment. 
-## If you don't have to deploy firewall and only deploy firewall rules than set 'var.firewall_enable' variable to false.   
+##-----------------------------------------------------------------------------
+# Azure Firewall Module – Deploys Azure Firewall with configurations  
 ##-----------------------------------------------------------------------------
 resource "azurerm_firewall" "firewall" {
   count               = var.enabled && var.firewall_enable ? 1 : 0
@@ -82,9 +79,7 @@ resource "azurerm_firewall" "firewall" {
     for_each = var.public_ip_names
     iterator = it
     content {
-      name = format(var.resource_position_prefix ? "ipconfig-%s-%s" : "%s-%s-ipconfig", local.name, it.value)
-      # var.enable_ip_subnet will be true when individual public ip and prefix public ip both are to be deployed (none of them exist before) or only individual public ip are to be deployed.
-      # var.enable_ip_subnet will be false when prefix_public_ip already exists and there are no individual public ip.
+      name                 = format(var.resource_position_prefix ? "ipconfig-%s-%s" : "%s-%s-ipconfig", local.name, it.value)
       subnet_id            = var.enable_ip_subnet ? it.key == 0 ? var.subnet_id : null : null
       public_ip_address_id = azurerm_public_ip.public_ip.*.id[it.key]
     }
@@ -94,13 +89,14 @@ resource "azurerm_firewall" "firewall" {
     for_each = var.prefix_public_ip_names
     iterator = it
     content {
-      name = format(var.resource_position_prefix ? "pipconfig-%s-%s" : "%s-%s-pipconfig", local.name, it.value)
+      name = format(var.resource_position_prefix ? "pipconfig-%s-%s" : "%s-%s-pipconfig", module.labels.id, it.value)
       # var.enable_prefix_subnet will only be true when prefix public ips are to be deployed during initial apply and there are no individual public ips to be created.
       # Individual public ips can be deployed after initial apply and var.enable_ip_subnet variable must be false. 
       subnet_id            = var.enable_prefix_subnet ? it.key == 0 ? var.subnet_id : null : null
       public_ip_address_id = azurerm_public_ip.prefix_public_ip.*.id[it.key]
     }
   }
+
   dynamic "ip_configuration" {
     for_each = toset(var.additional_public_ips)
     content {
@@ -116,8 +112,7 @@ resource "azurerm_firewall" "firewall" {
 }
 
 ##----------------------------------------------------------------------------- 
-## Below resource will create firewall policy in your environment. 
-## Firewall policy can only be deployed along firewall. If only firewall rules are to be deployed than firewall policy must be present in azure environment in which rules are to be deployed.   
+# Azure Firewall Policy – Deploys Azure Firewall Policy with rule collections
 ##-----------------------------------------------------------------------------
 resource "azurerm_firewall_policy" "policy" {
   count               = var.enabled && var.firewall_enable ? 1 : 0
@@ -134,10 +129,9 @@ resource "azurerm_firewall_policy" "policy" {
   }
 }
 
-##----------------------------------------------------------------------------- 
-## Below resource will deploy a user assigned identity. 
-## This identity will be attached to created firewall policy. So, can be created only when firewall policy is created using this module. 
-##-----------------------------------------------------------------------------
+##------------------------------------------------------------------------------------
+# User Assigned Identity – Creates a user assigned identity for Azure Firewall Policy
+##------------------------------------------------------------------------------------
 resource "azurerm_user_assigned_identity" "identity" {
   count               = var.enabled && var.firewall_enable ? 1 : 0
   location            = var.location
@@ -145,10 +139,9 @@ resource "azurerm_user_assigned_identity" "identity" {
   resource_group_name = var.resource_group_name
 }
 
-##----------------------------------------------------------------------------- 
-## Below resource will create firewall policy rule collection group. 
-## All application rules will be there in this group. 
-##-----------------------------------------------------------------------------
+##----------------------------------------------------------------------------------------------------------
+# Azure firewall Policy Rule Collection Group – Creates App collection groups for Azure Firewall Policy
+##----------------------------------------------------------------------------------------------------------
 resource "azurerm_firewall_policy_rule_collection_group" "app_policy_rule_collection_group" {
   count              = var.enabled && var.policy_rule_enabled ? 1 : 0
   name               = var.app_policy_collection_group
@@ -181,10 +174,9 @@ resource "azurerm_firewall_policy_rule_collection_group" "app_policy_rule_collec
   }
 }
 
-##----------------------------------------------------------------------------- 
-## Below resource will create firewall policy rule collection group. 
-## All network rules will be there in this group. 
-##-----------------------------------------------------------------------------
+##---------------------------------------------------------------------------------------------------------------
+# Azure firewall Policy Rule Collection Group – Creates Network rule collection groups for Azure Firewall Policy
+##---------------------------------------------------------------------------------------------------------------
 resource "azurerm_firewall_policy_rule_collection_group" "network_policy_rule_collection_group" {
   count              = var.enabled && var.policy_rule_enabled ? 1 : 0
   name               = var.net_policy_collection_group
@@ -213,10 +205,9 @@ resource "azurerm_firewall_policy_rule_collection_group" "network_policy_rule_co
   }
 }
 
-##----------------------------------------------------------------------------- 
-## Below resource will create firewall policy rule collection group. 
-## All dnat rules will be there in this group. 
-##-----------------------------------------------------------------------------
+##------------------------------------------------------------------------------------------------------------
+# Azure firewall Policy Rule Collection Group – Creates NAT rule collection groups for Azure Firewall Policy
+##------------------------------------------------------------------------------------------------------------
 resource "azurerm_firewall_policy_rule_collection_group" "nat_policy_rule_collection_group" {
   count              = var.enabled && var.dnat_destination_ip && var.policy_rule_enabled ? 1 : 0
   name               = var.nat_policy_collection_group
@@ -244,9 +235,9 @@ resource "azurerm_firewall_policy_rule_collection_group" "nat_policy_rule_collec
   }
 }
 
-##----------------------------------------------------------------------------- 
-## Below resource will create diagnostic setting for firewall. 
-##-----------------------------------------------------------------------------
+##--------------------------------------------------------------------------------------
+# Azure Firewall Diagnostic Setting – Configures diagnostic settings for Azure Firewall
+##--------------------------------------------------------------------------------------
 resource "azurerm_monitor_diagnostic_setting" "firewall_diagnostic_setting" {
   count                          = var.enabled && var.enable_diagnostic ? 1 : 0
   name                           = format(var.resource_position_prefix ? "firewall-diagnostic-log-%s" : "%s-firewall-diagnostic-log", local.name)

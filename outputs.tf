@@ -9,12 +9,6 @@ output "firewall_name" {
 
 }
 
-output "private_ip_address" {
-  value       = azurerm_firewall.firewall[*].ip_configuration[0].private_ip_address
-  description = "Firewall private IP"
-
-}
-
 output "public_ip_id" {
   description = "value of public IP ID"
   value       = azurerm_public_ip.public_ip.*.id
@@ -32,12 +26,12 @@ output "firewall_policy_id" {
 
 output "prefix_public_ip_id" {
   description = "value of prefix public IP ID"
-  value       = azurerm_public_ip.prefix_public_ip.*.id
+  value       = azurerm_public_ip.public_ip.*.id
 }
 
 output "prefix_public_ip_address" {
   description = "value of prefix public IP address"
-  value       = azurerm_public_ip.prefix_public_ip.*.ip_address
+  value       = azurerm_public_ip.public_ip.*.ip_address
 }
 
 output "public_ip_prefix_id" {

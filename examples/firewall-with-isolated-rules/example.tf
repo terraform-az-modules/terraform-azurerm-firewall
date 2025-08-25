@@ -182,52 +182,15 @@ module "firewall-rules" {
       priority = "101"
       rules = [
         {
-          name                = "http"
-          protocols           = ["TCP"]
-          source_addresses    = ["*"] // ["X.X.X.X"]
+          name                = "nat_rule_collection1_rule1"
+          protocols           = ["TCP", "UDP"]
+          source_addresses    = ["10.0.0.1", "10.0.0.2"]
+          destination_address = module.firewall.public_ip_address[0]
           destination_ports   = ["80"]
-          source_addresses    = ["*"]
-          translated_port     = "80"
-          translated_address  = "10.1.1.1"                           #provide private ip address to translate
-          destination_address = module.firewall.public_ip_address[1] //Public ip associated with firewall. Here index 1 indicates 'vnet ip' (from public_ip_names     = ["ingress" , "vnet"])
-
+          translated_address  = "192.168.0.1"
+          translated_port     = "8080"
         },
-        {
-          name                = "https"
-          protocols           = ["TCP"]
-          destination_ports   = ["443"]
-          source_addresses    = ["*"]
-          translated_port     = "443"
-          translated_address  = "10.1.1.1"                           #provide private ip address to translate
-          destination_address = module.firewall.public_ip_address[1] //Public ip associated with firewall
-
-        }
       ]
     },
-    {
-      name     = "example-nat-policy-2"
-      priority = "100"
-      rules = [
-        {
-          name                = "http"
-          protocols           = ["TCP"]
-          source_addresses    = ["*"] // ["X.X.X.X"]
-          destination_ports   = ["80"]
-          translated_port     = "80"
-          translated_address  = "10.1.1.2"                           #provide private ip address to translate
-          destination_address = module.firewall.public_ip_address[0] //Public ip associated with firewall.Here index 0 indicates 'ingress ip' (from public_ip_names     = ["ingress" , "vnet"])
-
-        },
-        {
-          name                = "https"
-          protocols           = ["TCP"]
-          source_addresses    = ["*"] // ["X.X.X.X"]
-          destination_ports   = ["443"]
-          translated_port     = "443"
-          translated_address  = "10.1.1.2"                           #provide private ip address to translate
-          destination_address = module.firewall.public_ip_address[0] //Public ip associated with firewall
-        }
-      ]
-    }
   ]
 }

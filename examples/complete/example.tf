@@ -101,6 +101,8 @@ module "firewall" {
   policy_rule_enabled        = true
   enable_diagnostic          = true
   log_analytics_workspace_id = module.log-analytics.workspace_id
+  public_ip_prefix_enable    = true
+  prefix_public_ip_names     = ["ip1", "ip2"] // Name of prefix public ips you want to create.
   logs = [
     {
       category = "AzureFirewallApplicationRule"
@@ -172,18 +174,18 @@ module "firewall" {
 
   nat_rule_collection = [
     {
-      name        = "example_nat_policy"
+      name        = "web_server_nat_policy"
       priority    = 100
-      description = "Redirects traffic to internal web server"
+      description = "Redirects external traffic to internal web server"
       rules = [
         {
           name                  = "web_server_nat"
           protocols             = ["TCP"]
-          source_addresses      = ["10.0.1.0"]                           # Replace "*" with a valid IP address
-          destination_addresses = [module.firewall.public_ip_address[1]] # Replace "*" with a valid IP address
-          destination_ports     = ["8080"]
-          translated_address    = "10.0.2.0" # Replace with the actual translated address
-          translated_port       = "80"
+          source_addresses      = ["*"]           # Any source
+          destination_addresses = ["20.1.1.0/20"] # Your firewall's PUBLIC IP
+          destination_ports     = ["8080"]        # External port
+          translated_address    = "10.0.3.4"      # Internal server IP
+          translated_port       = "80"            # Internal port
         }
       ]
     }
