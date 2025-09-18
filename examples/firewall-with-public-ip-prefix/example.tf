@@ -96,12 +96,9 @@ module "firewall" {
   resource_group_name        = module.resource_group.resource_group_name
   location                   = module.resource_group.resource_group_location
   subnet_id                  = module.name_specific_subnet.subnet_ids["AzureFirewallSubnet"]
-  public_ip_prefix_enable    = true
-  prefix_public_ip_names     = ["test-1", "test-2"]
-  public_ip_prefix_length    = 31
-  enable_prefix_subnet       = true
   firewall_enable            = true
   policy_rule_enabled        = true
+  primary_public_ip_name     = "public-ip-1"
   enable_diagnostic          = false
   log_analytics_workspace_id = module.log-analytics.workspace_id
 
@@ -167,13 +164,12 @@ module "firewall" {
       priority = "101"
       rules = [
         {
-          name                = "nat_rule_collection1_rule1"
-          protocols           = ["TCP", "UDP"]
-          source_addresses    = ["10.0.0.1", "10.0.0.2"]
-          destination_address = module.firewall.public_ip_address[0]
-          destination_ports   = ["80"]
-          translated_address  = "192.168.0.1"
-          translated_port     = "8080"
+          name               = "nat_rule_collection1_rule1"
+          protocols          = ["TCP", "UDP"]
+          source_addresses   = ["10.0.0.1", "10.0.0.2"]
+          destination_ports  = ["80"]
+          translated_address = "192.168.0.1"
+          translated_port    = "8080"
         },
       ]
     },

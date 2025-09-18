@@ -9,16 +9,10 @@ output "firewall_name" {
 
 }
 
-output "firewall-private_ip_address" {
-  value       = module.firewall.private_ip_address
-  description = "Firewall private IP"
-
-}
-
 output "public_ip_id" {
-  value = module.firewall.public_ip_id
+  value = module.firewall.public_ip_ids
 }
 
 output "public_ip_address" {
-  value = module.firewall.public_ip_address
+  value = module.firewall.public_ip_addresses
 }

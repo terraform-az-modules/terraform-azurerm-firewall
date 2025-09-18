@@ -14,6 +14,10 @@ module "labels" {
   extra_tags      = var.extra_tags
 }
 
+# Build a stable map for for_each
+locals {
+  public_ip_map = { for n in var.public_ip_names : n => { name = n } }
+}
 
 ##----------------------------------------------------------------------------- 
 # Firewall Public IP Prefix – Deploys Azure Firewall and its related resources
@@ -29,13 +33,9 @@ resource "azurerm_public_ip_prefix" "pip-prefix" {
   tags                = module.labels.tags
 }
 
-
-##-----------------------------------------------------------------------------
-# Azure Public IP Module – Creates public IP addresses for Azure Firewall
-##-----------------------------------------------------------------------------
-resource "azurerm_public_ip" "public_ip" {
-  count                = var.enabled && var.firewall_enable ? length(var.public_ip_names) : 0
-  name                 = format(var.resource_position_prefix ? "ip-%s-%s" : "%s-%s-ip", local.name, var.public_ip_names[count.index])
+resource "azurerm_public_ip" "primary_public_ip" {
+  count                = var.enabled && var.firewall_enable ? 1 : 0
+  name                 = format(var.resource_position_prefix ? "ip-%s-%s" : "%s-%s-ip", local.name, var.primary_public_ip_name)
   location             = var.location
   resource_group_name  = var.resource_group_name
   allocation_method    = var.public_ip_allocation_method
@@ -46,19 +46,24 @@ resource "azurerm_public_ip" "public_ip" {
 }
 
 ##-----------------------------------------------------------------------------
-# Azure Public IP Module – Creates public IP addresses from prefix for Azure Firewall
+# Azure Public IP Module – Creates public IP addresses for Azure Firewall
 ##-----------------------------------------------------------------------------
-resource "azurerm_public_ip" "prefix_public_ip" {
-  count                = var.enabled && var.firewall_enable && var.public_ip_prefix_enable ? length(var.prefix_public_ip_names) : 0
-  name                 = format(var.resource_position_prefix ? "pip-%s-%s" : "%s-%s-pip", local.name, var.prefix_public_ip_names[count.index])
+resource "azurerm_public_ip" "public_ip" {
+
+  for_each             = local.public_ip_map
+  name                 = var.public_ip_prefix_enable ? format(var.resource_position_prefix ? "pip-%s-%s" : "%s-%s-pip", local.name, each.key) : format(var.resource_position_prefix ? "ip-%s-%s" : "%s-%s-ip", local.name, each.key)
   location             = var.location
   resource_group_name  = var.resource_group_name
-  allocation_method    = var.prefix_public_ip_allocation_method
-  sku                  = var.prefix_public_ip_sku
-  public_ip_prefix_id  = azurerm_public_ip_prefix.pip-prefix[0].id
+  allocation_method    = var.public_ip_allocation_method
+  sku                  = var.public_ip_sku
+  public_ip_prefix_id  = var.public_ip_prefix_enable ? azurerm_public_ip_prefix.pip-prefix[0].id : null
   ddos_protection_mode = "VirtualNetworkInherited"
   tags                 = module.labels.tags
+  lifecycle {
+    create_before_destroy = true
+  }
 }
+
 
 ##-----------------------------------------------------------------------------
 # Azure Firewall Module – Deploys Azure Firewall with configurations  
@@ -75,39 +80,26 @@ resource "azurerm_firewall" "firewall" {
   tags                = module.labels.tags
   private_ip_ranges   = var.firewall_private_ip_ranges
   dns_servers         = var.dns_servers
+
+  # Primary ip_configuration (requires subnet_id)
+  ip_configuration {
+    name                 = format(var.resource_position_prefix ? "ipconfig-%s-%s" : "%s-%s-ipconfig", local.name, var.primary_public_ip_name)
+    subnet_id            = var.subnet_id
+    public_ip_address_id = azurerm_public_ip.primary_public_ip[0].id
+  }
+
+  # Additional ip_configurations for the remaining PIPs
   dynamic "ip_configuration" {
-    for_each = var.public_ip_names
-    iterator = it
+    for_each = azurerm_public_ip.public_ip #{ for k, v in azurerm_public_ip.public_ip : k => v if k != var.primary_public_ip_name }
     content {
-      name                 = format(var.resource_position_prefix ? "ipconfig-%s-%s" : "%s-%s-ipconfig", local.name, it.value)
-      subnet_id            = var.enable_ip_subnet ? it.key == 0 ? var.subnet_id : null : null
-      public_ip_address_id = azurerm_public_ip.public_ip.*.id[it.key]
+      name                 = format(var.resource_position_prefix ? "ipconfig-%s-%s" : "%s-%s-ipconfig", local.name, ip_configuration.key)
+      public_ip_address_id = ip_configuration.value.id
+      # subnet_id omitted by design for additional PIPs
     }
   }
 
-  dynamic "ip_configuration" {
-    for_each = var.prefix_public_ip_names
-    iterator = it
-    content {
-      name = format(var.resource_position_prefix ? "pipconfig-%s-%s" : "%s-%s-pipconfig", module.labels.id, it.value)
-      # var.enable_prefix_subnet will only be true when prefix public ips are to be deployed during initial apply and there are no individual public ips to be created.
-      # Individual public ips can be deployed after initial apply and var.enable_ip_subnet variable must be false. 
-      subnet_id            = var.enable_prefix_subnet ? it.key == 0 ? var.subnet_id : null : null
-      public_ip_address_id = azurerm_public_ip.prefix_public_ip.*.id[it.key]
-    }
-  }
-
-  dynamic "ip_configuration" {
-    for_each = toset(var.additional_public_ips)
-    content {
-      name                 = lookup(ip_configuration.value, "name")
-      public_ip_address_id = lookup(ip_configuration.value, "public_ip_address_id")
-    }
-  }
   lifecycle {
-    ignore_changes = [
-      tags,
-    ]
+    ignore_changes = [tags]
   }
 }
 

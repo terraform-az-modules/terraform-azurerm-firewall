@@ -96,13 +96,14 @@ module "firewall" {
   resource_group_name        = module.resource_group.resource_group_name
   location                   = module.resource_group.resource_group_location
   subnet_id                  = module.name_specific_subnet.subnet_ids["AzureFirewallSubnet"]
-  public_ip_names            = ["ingress", "vnet"] // Name of public ips you want to create.
+  primary_public_ip_name     = "ingress"
+  public_ip_names            = ["vnet", "app-4", "aap-1", "app-2"]
   firewall_enable            = true
+  public_ip_prefix_enable    = true
+  public_ip_prefix_length    = 28
   policy_rule_enabled        = true
   enable_diagnostic          = true
   log_analytics_workspace_id = module.log-analytics.workspace_id
-  public_ip_prefix_enable    = true
-  prefix_public_ip_names     = ["ip1", "ip2"] // Name of prefix public ips you want to create.
   logs = [
     {
       category = "AzureFirewallApplicationRule"
@@ -181,11 +182,11 @@ module "firewall" {
         {
           name                  = "web_server_nat"
           protocols             = ["TCP"]
-          source_addresses      = ["*"]           # Any source
-          destination_addresses = ["20.1.1.0/20"] # Your firewall's PUBLIC IP
-          destination_ports     = ["8080"]        # External port
-          translated_address    = "10.0.3.4"      # Internal server IP
-          translated_port       = "80"            # Internal port
+          source_addresses      = ["*"]            # Any source
+          destination_addresses = ["168.62.59.38"] # Your firewall's PUBLIC IP
+          destination_ports     = ["8080"]         # External port
+          translated_address    = "10.0.1.20"      # Internal server IP
+          translated_port       = "80"             # Internal port
         }
       ]
     }

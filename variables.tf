@@ -107,25 +107,49 @@ variable "public_ip_names" {
   description = "List of public IP names to create. If empty, a single public IP will be created with the name 'firewall-public-ip'."
 }
 
+variable "public_ip_prefix_enable" {
+  type        = bool
+  default     = false
+  description = "Flag to control creation of public ip prefix resource."
+
+}
+
+variable "prefix_public_ip_names" {
+  type        = list(string)
+  default     = []
+  description = "List of public IP names to associate with the public IP prefix. If empty, no public IPs will be associated with the prefix."
+
+}
+
+variable "primary_public_ip_name" {
+  description = "One of public_ip_names. Used for the subneted ip_configuration."
+  type        = string
+}
+
 variable "public_ip_allocation_method" {
   type        = string
   description = "Defines the allocation method for this IP address. Possible values are Static or Dynamic"
   default     = "Static"
 }
 
+variable "prefix_public_ip_allocation_method" {
+  type        = string
+  description = "Defines the allocation method for this IP address. Possible values are Static or Dynamic"
+  default     = "Static"
+
+}
+
+variable "prefix_public_ip_sku" {
+  type        = string
+  default     = "Standard"
+  description = "The SKU of the Public IP Prefix. Accepted values are Basic and Standard. Defaults to Standard"
+
+}
+
 variable "public_ip_sku" {
   description = "The SKU of the Public IP. Accepted values are Basic and Standard. Defaults to Basic"
   default     = "Standard"
   type        = string
-}
-
-#-----------------------------------------------------------------------------
-# Public IP Prefix configuration
-#-----------------------------------------------------------------------------
-variable "public_ip_prefix_enable" {
-  type        = bool
-  default     = false
-  description = "Flag to control creation of public ip prefix resource."
 }
 
 variable "public_ip_prefix_sku" {
@@ -144,27 +168,6 @@ variable "public_ip_prefix_length" {
   type        = number
   default     = 31
   description = "Specifies the number of bits of the prefix. The value can be set between 0 (4,294,967,296 addresses) and 31 (2 addresses). Defaults to 28(16 addresses). Changing this forces a new resource to be created."
-}
-
-#-----------------------------------------------------------------------------
-# Public IP Prefix Names configuration
-#-----------------------------------------------------------------------------
-variable "prefix_public_ip_names" {
-  type        = list(string)
-  default     = []
-  description = "Name of prefix public ips."
-}
-
-variable "prefix_public_ip_allocation_method" {
-  type        = string
-  default     = "Static"
-  description = "values are Static or Dynamic. Defines the allocation method for this IP address. Defaults to Static."
-}
-
-variable "prefix_public_ip_sku" {
-  type        = string
-  default     = "Standard"
-  description = "values are Basic or Standard. The SKU of the Public IP Prefix. Defaults to Standard."
 }
 
 #-----------------------------------------------------------------------------
@@ -215,12 +218,6 @@ variable "subnet_id" {
   type        = string
   default     = ""
   description = "The ID of the subnet to attach the firewall to. If not specified, the module will create a new subnet named 'AzureFirewallSubnet' in the specified virtual network."
-}
-
-variable "enable_prefix_subnet" {
-  type        = bool
-  default     = false
-  description = "Should subnet id be attached to first public ip name specified in public ip prefix name varible. To be true when there is no individual public ip."
 }
 
 variable "additional_public_ips" {

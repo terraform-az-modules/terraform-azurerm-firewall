@@ -97,6 +97,7 @@ module "firewall" {
   environment                = local.environment
   resource_group_name        = module.resource_group.resource_group_name
   location                   = module.resource_group.resource_group_location
+  primary_public_ip_name     = "public-ip-1"
   subnet_id                  = module.name_specific_subnet.subnet_ids["AzureFirewallSubnet"]
   public_ip_names            = ["ingress", "vnet"] // Name of public ips you want to create.
   firewall_enable            = true
@@ -114,12 +115,13 @@ module "firewall" {
 ## This is same module as 'firewall module', but from this module only firewall rules and rule collection group will be deployed. 
 ##-----------------------------------------------------------------------------
 module "firewall-rules" {
-  depends_on          = [module.firewall]
-  source              = "../.."
-  name                = local.name
-  environment         = local.environment
-  policy_rule_enabled = true
-  firewall_policy_id  = module.firewall.firewall_policy_id
+  depends_on             = [module.firewall]
+  source                 = "../.."
+  name                   = local.name
+  environment            = local.environment
+  policy_rule_enabled    = true
+  primary_public_ip_name = "public-ip-2"
+  firewall_policy_id     = module.firewall.firewall_policy_id
   application_rule_collection = [
     {
       name     = "example_app_policy"
@@ -185,7 +187,7 @@ module "firewall-rules" {
           name                = "nat_rule_collection1_rule1"
           protocols           = ["TCP", "UDP"]
           source_addresses    = ["10.0.0.1", "10.0.0.2"]
-          destination_address = module.firewall.public_ip_address[0]
+          destination_address = module.firewall.primary_public_ip_address
           destination_ports   = ["80"]
           translated_address  = "192.168.0.1"
           translated_port     = "8080"
