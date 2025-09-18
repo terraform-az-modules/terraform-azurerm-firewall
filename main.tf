@@ -1,13 +1,17 @@
-##----------------------------------------------------------------------------- 
-## Labels module callled that will be used for naming and tags.   
+##-----------------------------------------------------------------------------
+# Standard Tagging Module – Applies standard tags to all resources for traceability
 ##-----------------------------------------------------------------------------
 module "labels" {
-  source      = "clouddrove/labels/azure"
-  name        = var.name
-  environment = var.environment
-  managedby   = var.managedby
-  label_order = var.label_order
-  repository  = var.repository
+  source          = "terraform-az-modules/tags/azure"
+  version         = "1.0.0"
+  name            = var.custom_name == null ? var.name : var.custom_name
+  location        = var.location
+  environment     = var.environment
+  managedby       = var.managedby
+  label_order     = var.label_order
+  repository      = var.repository
+  deployment_mode = var.deployment_mode
+  extra_tags      = var.extra_tags
 }
 
 ##----------------------------------------------------------------------------- 
@@ -17,7 +21,7 @@ module "labels" {
 ##-----------------------------------------------------------------------------
 resource "azurerm_public_ip" "public_ip" {
   count                = var.enabled && var.firewall_enable ? length(var.public_ip_names) : 0
-  name                 = format("%s-%s-ip", module.labels.id, var.public_ip_names[count.index])
+  name                 = format(var.resource_position_prefix ? "ip-%s-%s" : "%s-%s-ip", local.name, var.public_ip_names[count.index])
   location             = var.location
   resource_group_name  = var.resource_group_name
   allocation_method    = var.public_ip_allocation_method
@@ -32,7 +36,7 @@ resource "azurerm_public_ip" "public_ip" {
 ##-----------------------------------------------------------------------------
 resource "azurerm_public_ip_prefix" "pip-prefix" {
   count               = var.enabled && var.firewall_enable && var.public_ip_prefix_enable ? 1 : 0
-  name                = format("%s-public-ip-prefix", module.labels.id)
+  name                = format(var.resource_position_prefix ? "public-ip-prefix-%s" : "%s-public-ip-prefix", local.name)
   location            = var.location
   resource_group_name = var.resource_group_name
   sku                 = var.public_ip_prefix_sku
@@ -47,7 +51,7 @@ resource "azurerm_public_ip_prefix" "pip-prefix" {
 ##-----------------------------------------------------------------------------
 resource "azurerm_public_ip" "prefix_public_ip" {
   count                = var.enabled && var.firewall_enable && var.public_ip_prefix_enable ? length(var.prefix_public_ip_names) : 0
-  name                 = format("%s-%s-pip", module.labels.id, var.prefix_public_ip_names[count.index])
+  name                 = format(var.resource_position_prefix ? "pip-%s-%s" : "%s-%s-pip", local.name)
   location             = var.location
   resource_group_name  = var.resource_group_name
   allocation_method    = var.prefix_public_ip_allocation_method
@@ -64,7 +68,7 @@ resource "azurerm_public_ip" "prefix_public_ip" {
 ##-----------------------------------------------------------------------------
 resource "azurerm_firewall" "firewall" {
   count               = var.enabled && var.firewall_enable ? 1 : 0
-  name                = format("%s-firewall", module.labels.id)
+  name                = format(var.resource_position_prefix ? "firewall-%s" : "%s-firewall", local.name)
   location            = var.location
   resource_group_name = var.resource_group_name
   threat_intel_mode   = var.threat_intel_mode
@@ -78,7 +82,7 @@ resource "azurerm_firewall" "firewall" {
     for_each = var.public_ip_names
     iterator = it
     content {
-      name = format("%s-%s-ipconfig", module.labels.id, it.value)
+      name = format(var.resource_position_prefix ? "ipconfig-%s-%s" : "%s-%s-ipconfig", local.name, it.value)
       # var.enable_ip_subnet will be true when individual public ip and prefix public ip both are to be deployed (none of them exist before) or only individual public ip are to be deployed.
       # var.enable_ip_subnet will be false when prefix_public_ip already exists and there are no individual public ip.
       subnet_id            = var.enable_ip_subnet ? it.key == 0 ? var.subnet_id : null : null
@@ -90,7 +94,7 @@ resource "azurerm_firewall" "firewall" {
     for_each = var.prefix_public_ip_names
     iterator = it
     content {
-      name = format("%s-%s-pipconfig", module.labels.id, it.value)
+      name = format(var.resource_position_prefix ? "pipconfig-%s-%s" : "%s-%s-pipconfig", local.name, it.value)
       # var.enable_prefix_subnet will only be true when prefix public ips are to be deployed during initial apply and there are no individual public ips to be created.
       # Individual public ips can be deployed after initial apply and var.enable_ip_subnet variable must be false. 
       subnet_id            = var.enable_prefix_subnet ? it.key == 0 ? var.subnet_id : null : null
@@ -121,7 +125,7 @@ resource "azurerm_firewall" "firewall" {
 ##-----------------------------------------------------------------------------
 resource "azurerm_firewall_policy" "policy" {
   count               = var.enabled && var.firewall_enable ? 1 : 0
-  name                = format("%s-firewall-FirewallPolicy", module.labels.id)
+  name                = format(var.resource_position_prefix ? "firewall-Policy-%s" : "%s-firewall-Policy", local.name)
   resource_group_name = var.resource_group_name
   location            = var.location
   sku                 = var.sku_policy
@@ -141,7 +145,7 @@ resource "azurerm_firewall_policy" "policy" {
 resource "azurerm_user_assigned_identity" "identity" {
   count               = var.enabled && var.firewall_enable ? 1 : 0
   location            = var.location
-  name                = format("%s-fw-policy-mid", module.labels.id)
+  name                = format(var.resource_position_prefix ? "fw-policy-mid-%s" : "%s-fw-policy-mid", local.name)
   resource_group_name = var.resource_group_name
 }
 
@@ -254,34 +258,28 @@ resource "azurerm_firewall_policy_rule_collection_group" "nat_policy_rule_collec
 ##----------------------------------------------------------------------------- 
 ## Below resource will create diagnostic setting for firewall. 
 ##-----------------------------------------------------------------------------
-resource "azurerm_monitor_diagnostic_setting" "firewall_diagnostic-setting" {
+resource "azurerm_monitor_diagnostic_setting" "firewall_diagnostic_setting" {
   count                          = var.enabled && var.enable_diagnostic ? 1 : 0
-  name                           = format("firewall-diagnostic-log")
+  name                           = format(var.resource_position_prefix ? "firewall-diagnostic-log-%s" : "%s-firewall-diagnostic-log", local.name)
   target_resource_id             = azurerm_firewall.firewall[0].id
   storage_account_id             = var.storage_account_id
   eventhub_name                  = var.eventhub_name
   eventhub_authorization_rule_id = var.eventhub_authorization_rule_id
   log_analytics_workspace_id     = var.log_analytics_workspace_id
-  # log_analytics_destination_type = var.log_analytics_destination_type
+  log_analytics_destination_type = var.log_analytics_destination_type
 
-  log {
-
-    category_group = "AllLogs"
-    enabled        = true
-
-    retention_policy {
-      enabled = var.retention_policy_enabled
-      days    = var.days
+  dynamic "enabled_metric" {
+    for_each = var.metric_enabled ? ["AllMetrics"] : []
+    content {
+      category = enabled_metrics.value
     }
   }
 
-  metric {
-    category = "AllMetrics"
-    enabled  = true
-
-    retention_policy {
-      enabled = var.retention_policy_enabled
-      days    = var.days
+  dynamic "enabled_log" {
+    for_each = var.logs
+    content {
+      category_group = lookup(enabled_log.value, "category_group", null)
+      category       = lookup(enabled_log.value, "category", null)
     }
   }
 }

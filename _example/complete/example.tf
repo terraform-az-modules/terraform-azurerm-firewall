@@ -12,8 +12,8 @@ locals {
 ## Resource group in which all resources will be deployed.
 ##-----------------------------------------------------------------------------
 module "resource_group" {
-  source      = "clouddrove/resource-group/azure"
-  version     = "1.0.2"
+  source      = "terraform-az-modules/resource-group/azure"
+  version     = "1.0.0"
   name        = local.name
   environment = local.environment
   label_order = ["name", "environment", ]
@@ -26,13 +26,13 @@ module "resource_group" {
 ##-----------------------------------------------------------------------------
 module "vnet" {
   depends_on          = [module.resource_group]
-  source              = "clouddrove/vnet/azure"
-  version             = "1.0.3"
+  source              = "terraform-az-modules/vnet/azure"
+  version             = "1.0.0"
   name                = local.name
   environment         = local.environment
   resource_group_name = module.resource_group.resource_group_name
   location            = module.resource_group.resource_group_location
-  address_space       = "10.0.0.0/16"
+  address_spaces      = ["10.0.0.0/16"]
 }
 
 ##----------------------------------------------------------------------------- 
@@ -40,24 +40,30 @@ module "vnet" {
 ## Name specific subnet for firewall will be created. 
 ##-----------------------------------------------------------------------------
 module "name_specific_subnet" {
-  depends_on           = [module.vnet]
-  source               = "clouddrove/subnet/azure"
-  version              = "1.0.2"
-  name                 = local.name
-  environment          = local.environment
+  source               = "terraform-az-modules/subnet/azure"
+  version              = "1.0.0"
+  environment          = "test"
+  label_order          = ["name", "environment", ]
   resource_group_name  = module.resource_group.resource_group_name
   location             = module.resource_group.resource_group_location
-  virtual_network_name = join("", module.vnet.vnet_name)
-  #subnet
-  specific_name_subnet  = true
-  specific_subnet_names = "AzureFirewallSubnet"
-  subnet_prefixes       = ["10.0.1.0/24"]
-  # route_table
-  routes = [
+  virtual_network_name = module.vnet.vnet_name
+  subnets = [
     {
-      name           = "rt-test"
-      address_prefix = "0.0.0.0/0"
-      next_hop_type  = "Internet"
+      name            = "AzureFirewallSubnet"
+      subnet_prefixes = ["10.0.1.0/24"]
+    }
+  ]
+  enable_route_table = true
+  route_tables = [
+    {
+      name = "route-table"
+      routes = [
+        {
+          name           = "route-table"
+          address_prefix = "0.0.0.0/0"
+          next_hop_type  = "Internet"
+        }
+      ]
     }
   ]
 }
@@ -67,15 +73,14 @@ module "name_specific_subnet" {
 ## Log Analytic workspace for firerwall diagnostic setting. 
 ##-----------------------------------------------------------------------------
 module "log-analytics" {
-  source                           = "clouddrove/log-analytics/azure"
-  version                          = "1.0.1"
-  name                             = local.name
-  environment                      = local.environment
-  label_order                      = ["name", "environment"]
-  create_log_analytics_workspace   = true
-  log_analytics_workspace_sku      = "PerGB2018"
-  resource_group_name              = module.resource_group.resource_group_name
-  log_analytics_workspace_location = module.resource_group.resource_group_location
+  source                      = "terraform-az-modules/log-analytics/azure"
+  version                     = "1.0.0"
+  name                        = local.name
+  environment                 = local.environment
+  label_order                 = ["name", "environment"]
+  log_analytics_workspace_sku = "PerGB2018"
+  resource_group_name         = module.resource_group.resource_group_name
+  location                    = module.resource_group.resource_group_location
 }
 
 ##----------------------------------------------------------------------------- 
@@ -83,23 +88,29 @@ module "log-analytics" {
 ## All firewall related resources will be deployed from this module, i.e. including firewall and firewall rules.
 ##-----------------------------------------------------------------------------
 module "firewall" {
-  depends_on          = [module.name_specific_subnet]
-  source              = "../.."
-  name                = local.name
-  environment         = local.environment
-  resource_group_name = module.resource_group.resource_group_name
-  location            = module.resource_group.resource_group_location
-  subnet_id           = module.name_specific_subnet.specific_subnet_id[0]
-  public_ip_names     = ["ingress", "vnet"] // Name of public ips you want to create.
-
-  # additional_public_ips = [{
-  # name = "public-ip_name",
-  # public_ip_address_id = "public-ip_resource_id"
-  #   } ]
+  depends_on                 = [module.name_specific_subnet]
+  source                     = "../.."
+  name                       = local.name
+  environment                = local.environment
+  resource_group_name        = module.resource_group.resource_group_name
+  location                   = module.resource_group.resource_group_location
+  subnet_id                  = module.name_specific_subnet.subnet_ids["AzureFirewallSubnet"]
+  public_ip_names            = ["ingress", "vnet"] // Name of public ips you want to create.
   firewall_enable            = true
   policy_rule_enabled        = true
-  enable_diagnostic          = false
+  enable_diagnostic          = true
   log_analytics_workspace_id = module.log-analytics.workspace_id
+  logs = [
+    {
+      category = "AzureFirewallApplicationRule"
+    },
+    {
+      category = "AzureFirewallNetworkRule"
+    },
+    {
+      category = "AzureFirewallDnsProxy"
+    },
+  ]
 
   application_rule_collection = [
     {

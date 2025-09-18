@@ -1,9 +1,38 @@
-#Module      : LABEL
-#Description : Terraform label module variables.
+##-----------------------------------------------------------------------------
+## Naming convention
+##-----------------------------------------------------------------------------
+variable "custom_name" {
+  type        = string
+  default     = null
+  description = "Override default naming convention"
+}
+
+variable "resource_position_prefix" {
+  type        = bool
+  default     = true
+  description = <<EOT
+Controls the placement of the resource type keyword (e.g., "vnet", "ddospp") in the resource name.
+
+- If true, the keyword is prepended: "vnet-core-dev".
+- If false, the keyword is appended: "core-dev-vnet".
+
+This helps maintain naming consistency based on organizational preferences.
+EOT
+}
+
+##-----------------------------------------------------------------------------
+## Labels
+##-----------------------------------------------------------------------------
 variable "name" {
   type        = string
   default     = ""
   description = "Name  (e.g. `app` or `cluster`)."
+}
+
+variable "location" {
+  type        = string
+  default     = ""
+  description = "The location/region where the key vault is created. Changing this forces a new resource to be created."
 }
 
 variable "environment" {
@@ -12,22 +41,40 @@ variable "environment" {
   description = "Environment (e.g. `prod`, `dev`, `staging`)."
 }
 
-variable "repository" {
+variable "managedby" {
   type        = string
-  default     = ""
-  description = "Terraform current module repo"
+  default     = "terraform-az-modules"
+  description = "ManagedBy, eg 'terraform-az-modules'."
 }
 
 variable "label_order" {
   type        = list(any)
-  default     = ["name", "environment"]
-  description = "Label order, e.g. sequence of application name and environment `name`,`environment`,'attribute' [`webserver`,`qa`,`devops`,`public`,] ."
+  default     = ["name", "environment", "location"]
+  description = "Order of labels in the resource name. The order of labels in the resource name. The default order is ['name', 'environment', 'location']. You can change this to ['environment', 'name', 'location'] or any other order as per your requirements."
 }
 
-variable "managedby" {
+variable "repository" {
   type        = string
-  default     = ""
-  description = "ManagedBy, eg ''."
+  default     = "https://github.com/terraform-az-modules/terraform-azure-key-vault"
+  description = "Terraform current module repo"
+
+  validation {
+    # regex(...) fails if it cannot find a match
+    condition     = can(regex("^https://", var.repository))
+    error_message = "The module-repo value must be a valid Git repo link."
+  }
+}
+
+variable "deployment_mode" {
+  type        = string
+  default     = "terraform"
+  description = "Specifies how the infrastructure/resource is deployed"
+}
+
+variable "extra_tags" {
+  type        = map(string)
+  default     = null
+  description = "Variable to pass extra tags."
 }
 
 variable "enabled" {
@@ -152,11 +199,11 @@ variable "enable_ip_subnet" {
   description = "Should subnet id be attached to first public ip name specified in public ip names variable. To be true when there is no individual public ip."
 }
 
-variable "location" {
-  type        = string
-  default     = ""
-  description = "The location/region where the virtual network is created. Changing this forces a new resource to be created."
-}
+# variable "location" {
+#   type        = string
+#   default     = ""
+#   description = "The location/region where the virtual network is created. Changing this forces a new resource to be created."
+# }
 
 variable "firewall_private_ip_ranges" {
   description = "A list of SNAT private CIDR IP ranges, or the special string `IANAPrivateRanges`, which indicates Azure Firewall does not SNAT when the destination IP address is a private range per IANA RFC 1918."
@@ -206,6 +253,27 @@ variable "log_analytics_workspace_id" {
   type        = string
   default     = null
   description = "log analytics workspace id to pass it to destination details of diagnosys setting of NSG."
+}
+
+variable "log_analytics_destination_type" {
+  type        = string
+  default     = "AzureDiagnostics"
+  description = "Possible values are AzureDiagnostics and Dedicated, default to AzureDiagnostics. When set to Dedicated, logs sent to a Log Analytics workspace will go into resource specific tables, instead of the legacy AzureDiagnostics table."
+}
+
+variable "metric_enabled" {
+  type        = bool
+  default     = false
+  description = "Set to true to enable metrics for the diagnosys setting."
+}
+
+variable "logs" {
+  type = list(object({
+    category_group = optional(string)
+    category       = optional(string)
+  }))
+  default     = []
+  description = "List of logs to enable for the diagnosys setting."
 }
 
 variable "retention_policy_enabled" {
