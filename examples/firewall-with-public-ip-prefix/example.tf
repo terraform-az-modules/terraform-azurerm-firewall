@@ -3,7 +3,7 @@ provider "azurerm" {
 }
 
 locals {
-  name        = "app"
+  name        = "app2-firewall"
   environment = "test"
 }
 
@@ -44,7 +44,7 @@ module "name_specific_subnet" {
   source               = "terraform-az-modules/subnet/azure"
   version              = "1.0.0"
   environment          = "test"
-  label_order          = ["name", "environment", ]
+  label_order          = ["name", "environment", "location"]
   resource_group_name  = module.resource_group.resource_group_name
   location             = module.resource_group.resource_group_location
   virtual_network_name = module.vnet.vnet_name
@@ -78,7 +78,7 @@ module "log-analytics" {
   version                     = "1.0.0"
   name                        = local.name
   environment                 = local.environment
-  label_order                 = ["name", "environment"]
+  label_order                 = ["name", "environment", "location"]
   log_analytics_workspace_sku = "PerGB2018"
   resource_group_name         = module.resource_group.resource_group_name
   location                    = module.resource_group.resource_group_location
@@ -96,25 +96,11 @@ module "firewall" {
   resource_group_name        = module.resource_group.resource_group_name
   location                   = module.resource_group.resource_group_location
   subnet_id                  = module.name_specific_subnet.subnet_ids["AzureFirewallSubnet"]
-  primary_public_ip_name     = "ingress"
-  public_ip_names            = ["vnet", "app-4", "aap-1", "app-2"]
   firewall_enable            = true
-  public_ip_prefix_enable    = true
-  public_ip_prefix_length    = 28
   policy_rule_enabled        = true
-  enable_diagnostic          = true
+  primary_public_ip_name     = "public-ip-1"
+  enable_diagnostic          = false
   log_analytics_workspace_id = module.log-analytics.workspace_id
-  logs = [
-    {
-      category = "AzureFirewallApplicationRule"
-    },
-    {
-      category = "AzureFirewallNetworkRule"
-    },
-    {
-      category = "AzureFirewallDnsProxy"
-    },
-  ]
 
   application_rule_collection = [
     {
@@ -140,7 +126,6 @@ module "firewall" {
       ]
     }
   ]
-
   network_rule_collection = [
     {
       name     = "example_network_policy"
@@ -175,20 +160,18 @@ module "firewall" {
 
   nat_rule_collection = [
     {
-      name        = "web_server_nat_policy"
-      priority    = 100
-      description = "Redirects external traffic to internal web server"
+      name     = "example_nat_policy-1"
+      priority = "101"
       rules = [
         {
-          name                = "web_server_nat"
-          protocols           = ["TCP"]
-          source_addresses    = ["*"]                                     # Any source
-          destination_address = module.firewall.primary_public_ip_address # Your firewall's PUBLIC IP
-          destination_ports   = ["8080"]                                  # External port
-          translated_address  = "10.0.1.20"                               # Internal server IP
-          translated_port     = "80"                                      # Internal port
-        }
+          name               = "nat_rule_collection1_rule1"
+          protocols          = ["TCP", "UDP"]
+          source_addresses   = ["10.0.0.1", "10.0.0.2"]
+          destination_ports  = ["80"]
+          translated_address = "192.168.0.1"
+          translated_port    = "8080"
+        },
       ]
-    }
+    },
   ]
 }

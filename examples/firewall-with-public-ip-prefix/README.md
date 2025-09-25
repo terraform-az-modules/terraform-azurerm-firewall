@@ -12,6 +12,7 @@ This directory contains an example usage of the **terraform-azure-application-in
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.6.6 |
 | <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) | >=3.116.0 |
+
 ---
 
 ## 🔌 Providers
@@ -21,6 +22,7 @@ None specified in this example.
 ---
 
 ## 📦 Modules
+
 | Name | Source | Version |
 |------|--------|---------|
 | <a name="module_firewall"></a> [firewall](#module\_firewall) | ../.. | n/a |
@@ -28,6 +30,7 @@ None specified in this example.
 | <a name="module_name_specific_subnet"></a> [name\_specific\_subnet](#module\_name\_specific\_subnet) | terraform-az-modules/subnet/azure | 1.0.0 |
 | <a name="module_resource_group"></a> [resource\_group](#module\_resource\_group) | terraform-az-modules/resource-group/azure | 1.0.0 |
 | <a name="module_vnet"></a> [vnet](#module\_vnet) | terraform-az-modules/vnet/azure | 1.0.0 |
+
 ---
 
 ## 🏗️ Resources
@@ -47,9 +50,8 @@ No input variables are defined in this example.
 | Name | Description |
 |------|-------------|
 | <a name="output_firewall_id"></a> [firewall\_id](#output\_firewall\_id) | Firewall generated id |
-| <a name="output_primary_public_ip_address"></a> [primary\_public\_ip\_address](#output\_primary\_public\_ip\_address) | The Primary public IP address associated with the firewall |
-| <a name="output_primary_public_ip_id"></a> [primary\_public\_ip\_id](#output\_primary\_public\_ip\_id) | The Primary public IP associated with the firewall |
-| <a name="output_public_ip_address"></a> [public\_ip\_address](#output\_public\_ip\_address) | The public IP address associated with the firewall |
-| <a name="output_public_ip_id"></a> [public\_ip\_id](#output\_public\_ip\_id) | The public IP associated with the firewall |
+| <a name="output_firewall_name"></a> [firewall\_name](#output\_firewall\_name) | The name of the Firewall |
+| <a name="output_public_ip_address"></a> [public\_ip\_address](#output\_public\_ip\_address) | value of public IP Addresses |
+| <a name="output_public_ip_id"></a> [public\_ip\_id](#output\_public\_ip\_id) | value of public IP IDs |
 
 <!-- END_TF_DOCS -->
