@@ -114,13 +114,6 @@ variable "public_ip_prefix_enable" {
 
 }
 
-variable "prefix_public_ip_names" {
-  type        = list(string)
-  default     = []
-  description = "List of public IP names to associate with the public IP prefix. If empty, no public IPs will be associated with the prefix."
-
-}
-
 variable "primary_public_ip_name" {
   description = "One of public_ip_names. Used for the subneted ip_configuration."
   type        = string
@@ -132,19 +125,6 @@ variable "public_ip_allocation_method" {
   default     = "Static"
 }
 
-variable "prefix_public_ip_allocation_method" {
-  type        = string
-  description = "Defines the allocation method for this IP address. Possible values are Static or Dynamic"
-  default     = "Static"
-
-}
-
-variable "prefix_public_ip_sku" {
-  type        = string
-  default     = "Standard"
-  description = "The SKU of the Public IP Prefix. Accepted values are Basic and Standard. Defaults to Standard"
-
-}
 
 variable "public_ip_sku" {
   description = "The SKU of the Public IP. Accepted values are Basic and Standard. Defaults to Basic"
@@ -208,27 +188,11 @@ variable "dns_servers" {
   default     = null
 }
 
-variable "enable_ip_subnet" {
-  type        = bool
-  default     = true
-  description = "Should subnet id be attached to first public ip name specified in public ip names variable. To be true when there is no individual public ip."
-}
-
 variable "subnet_id" {
   type        = string
   default     = ""
   description = "The ID of the subnet to attach the firewall to. If not specified, the module will create a new subnet named 'AzureFirewallSubnet' in the specified virtual network."
 }
-
-variable "additional_public_ips" {
-  type = list(object({
-    name                 = string,
-    public_ip_address_id = string
-  }))
-  default     = []
-  description = "List of additional public ips' ids to attach to the firewall."
-}
-
 
 #-----------------------------------------------------------------------------
 # Firewall Policy configuration
