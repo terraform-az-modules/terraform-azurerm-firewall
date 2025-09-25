@@ -164,12 +164,13 @@ module "firewall" {
       priority = "101"
       rules = [
         {
-          name               = "nat_rule_collection1_rule1"
-          protocols          = ["TCP", "UDP"]
-          source_addresses   = ["10.0.0.1", "10.0.0.2"]
-          destination_ports  = ["80"]
-          translated_address = "192.168.0.1"
-          translated_port    = "8080"
+          name                = "nat_rule_collection1_rule1"
+          protocols           = ["TCP", "UDP"]
+          source_addresses    = ["10.0.0.1", "10.0.0.2"]
+          destination_ports   = ["80"]
+          destination_address = module.firewall.primary_public_ip_address
+          translated_address  = "192.168.0.1"
+          translated_port     = "8080"
         },
       ]
     },
