@@ -216,7 +216,7 @@ usage: |-
     network_rule_collection = [
       {
         name     = "example_network_policy"
-        priority = "100"
+        priority = 100
         action   = "Allow"
         rules = [
           {
