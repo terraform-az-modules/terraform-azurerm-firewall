@@ -32,7 +32,7 @@ variable "name" {
 variable "location" {
   type        = string
   default     = ""
-  description = "The location/region where the key vault is created. Changing this forces a new resource to be created."
+  description = "The location/region where the firewall is created. Changing this forces a new resource to be created."
 }
 
 variable "environment" {
@@ -55,7 +55,7 @@ variable "label_order" {
 
 variable "repository" {
   type        = string
-  default     = "https://github.com/terraform-az-modules/terraform-azure-key-vault"
+  default     = "https://github.com/terraform-az-modules/terraform-azure-firewall"
   description = "Terraform current module repo"
 
   validation {
@@ -127,7 +127,7 @@ variable "public_ip_allocation_method" {
 
 
 variable "public_ip_sku" {
-  description = "The SKU of the Public IP. Accepted values are Basic and Standard. Defaults to Basic"
+  description = "The SKU of the Public IP. Accepted values are Basic and Standard. Defaults to Standard"
   default     = "Standard"
   type        = string
 }
@@ -146,7 +146,7 @@ variable "public_ip_prefix_ip_version" {
 
 variable "public_ip_prefix_length" {
   type        = number
-  default     = 31
+  default     = 28
   description = "Specifies the number of bits of the prefix. The value can be set between 0 (4,294,967,296 addresses) and 31 (2 addresses). Defaults to 28(16 addresses). Changing this forces a new resource to be created."
 }
 
@@ -173,7 +173,7 @@ variable "sku_tier" {
 variable "sku_name" {
   type        = string
   default     = "AZFW_VNet"
-  description = "(optional) describe your variable"
+  description = "SKU name of the Firewall. Possible values are `AZFW_VNet` and `AZFW_Hub`."
 }
 
 variable "firewall_private_ip_ranges" {
@@ -323,31 +323,31 @@ variable "nat_rule_collection" {
 variable "enable_diagnostic" {
   type        = bool
   default     = false
-  description = "Set to false to prevent the module from creating the diagnosys setting for the NSG Resource.."
+  description = "Set to false to prevent the module from creating the diagnosys setting for the firewall Resource.."
 }
 
 variable "storage_account_id" {
   type        = string
   default     = null
-  description = "Storage account id to pass it to destination details of diagnosys setting of NSG."
+  description = "Storage account id to pass it to destination details of diagnosys setting of firewall."
 }
 
 variable "eventhub_name" {
   type        = string
   default     = null
-  description = "Eventhub Name to pass it to destination details of diagnosys setting of NSG."
+  description = "Eventhub Name to pass it to destination details of diagnosys setting of firewall."
 }
 
 variable "eventhub_authorization_rule_id" {
   type        = string
   default     = null
-  description = "Eventhub authorization rule id to pass it to destination details of diagnosys setting of NSG."
+  description = "Eventhub authorization rule id to pass it to destination details of diagnosys setting of firewall."
 }
 
 variable "log_analytics_workspace_id" {
   type        = string
   default     = null
-  description = "log analytics workspace id to pass it to destination details of diagnosys setting of NSG."
+  description = "log analytics workspace id to pass it to destination details of diagnosys setting of firewall."
 }
 
 variable "log_analytics_destination_type" {
