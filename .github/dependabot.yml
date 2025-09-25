@@ -44,3 +44,31 @@ updates:
       - "Crew"
     # Allow up to 3 open pull requests for pip dependencies
     open-pull-requests-limit: 3
+
+  - package-ecosystem: "terraform" # See documentation for possible values
+    directory: "/examples/firewall-with-isolated-rules" # Location of package manifests
+    schedule:
+      interval: "daily"
+    # Add assignees
+    assignees:
+      - "clouddrove-ci"
+    # Add reviewer
+    reviewers:
+      - "approvers"
+      - "Crew"
+    # Allow up to 3 open pull requests for pip dependencies
+    open-pull-requests-limit: 3
+
+  - package-ecosystem: "terraform" # See documentation for possible values
+    directory: "/examples/firewall-with-public-ip-prefix" # Location of package manifests
+    schedule:
+      interval: "daily"
+    # Add assignees
+    assignees:
+      - "clouddrove-ci"
+    # Add reviewer
+    reviewers:
+      - "approvers"
+      - "Crew"
+    # Allow up to 3 open pull requests for pip dependencies
+    open-pull-requests-limit: 3

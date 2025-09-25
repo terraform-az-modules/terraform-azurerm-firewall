@@ -9,8 +9,17 @@ jobs:
   complete-example:
     uses: clouddrove/github-shared-workflows/.github/workflows/tf-checks.yml@master
     with:
-      working_directory: './examples/complete/'
+      working_directory: 'examples/complete/'
+
+  firewall-with-isolated-rules-example:
+    uses: clouddrove/github-shared-workflows/.github/workflows/tf-checks.yml@master
+    with:
+      working_directory: 'examples/firewall-with-isolated-rules/'
   
+  firewall-with-public-ip-prefix-example:
+    uses: clouddrove/github-shared-workflows/.github/workflows/tf-checks.yml@master
+    with:
+      working_directory: 'examples/firewall-with-public-ip-prefix/'
 # Seperate Job for TFlint workflow call
   tf-lint:
     uses: clouddrove/github-shared-workflows/.github/workflows/tf-lint.yml@master
