@@ -25,20 +25,6 @@ output "firewall_policy_id" {
 
 output "public_ip_prefix_id" {
   description = "value of public IP prefix ID"
-  value       = join("", azurerm_public_ip_prefix.pip-prefix.*.id)
+  value       = join("", azurerm_public_ip_prefix.pip_prefix.*.id)
 }
 
-output "primary_public_ip_address" {
-  description = "Primary public IP address"
-  value       = join("", azurerm_public_ip.primary_public_ip.*.ip_address)
-}
-
-output "primary_public_ip_id" {
-  description = "ID of the primary public IP"
-  value       = join("", azurerm_public_ip.primary_public_ip.*.id)
-}
-
-output "primary_public_ip_name" {
-  description = "Name of the primary public IP"
-  value       = join("", azurerm_public_ip.primary_public_ip.*.name)
-}

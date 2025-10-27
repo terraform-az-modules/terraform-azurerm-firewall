@@ -104,7 +104,11 @@ variable "firewall_enable" {
 variable "public_ip_names" {
   type        = list(string)
   default     = []
-  description = "List of public IP names to create. If empty, a single public IP will be created with the name 'firewall-public-ip'."
+  description = "List of public IP names to create."
+  validation {
+    condition     = (!var.firewall_enable) || length(var.public_ip_names) >= 1
+    error_message = "At least one public_ip_names entry is required when firewall_enable = true."
+  }
 }
 
 variable "public_ip_prefix_enable" {
@@ -114,10 +118,10 @@ variable "public_ip_prefix_enable" {
 
 }
 
-variable "primary_public_ip_name" {
-  description = "One of public_ip_names. Used for the subneted ip_configuration."
-  type        = string
-}
+# variable "primary_public_ip_name" {
+#   description = "One of public_ip_names. Used for the subneted ip_configuration."
+#   type        = string
+# }
 
 variable "public_ip_allocation_method" {
   type        = string
