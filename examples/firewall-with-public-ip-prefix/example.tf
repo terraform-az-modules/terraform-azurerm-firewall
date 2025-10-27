@@ -26,7 +26,7 @@ module "resource_group" {
 ##-----------------------------------------------------------------------------
 module "vnet" {
   depends_on          = [module.resource_group]
-  source              = "terraform-az-modules/vnet/azure"
+  source              = "terraform-azure-vnet" #"terraform-az-modules/vnet/azure"
   version             = "1.0.0"
   name                = local.name
   environment         = local.environment
@@ -84,6 +84,8 @@ module "log-analytics" {
   location                    = module.resource_group.resource_group_location
 }
 
+
+
 ##----------------------------------------------------------------------------- 
 ## Firewall module call. 
 ## All firewall related resources will be deployed from this module, i.e. including firewall and firewall rules.
@@ -98,8 +100,10 @@ module "firewall" {
   subnet_id                  = module.name_specific_subnet.subnet_ids["AzureFirewallSubnet"]
   firewall_enable            = true
   policy_rule_enabled        = true
-  primary_public_ip_name     = "public-ip-1"
-  enable_diagnostic          = false
+  public_ip_names            = ["ingress", "vnet", "app", "app-2"]
+  enable_diagnostic          = true
+  eventhub_name              = local.name
+  public_ip_prefix_enable    = true
   log_analytics_workspace_id = module.log-analytics.workspace_id
 
   application_rule_collection = [
@@ -168,7 +172,7 @@ module "firewall" {
           protocols           = ["TCP", "UDP"]
           source_addresses    = ["10.0.0.1", "10.0.0.2"]
           destination_ports   = ["80"]
-          destination_address = module.firewall.primary_public_ip_address
+          destination_address = module.firewall.public_ip_addresses["vnet"]
           translated_address  = "192.168.0.1"
           translated_port     = "8080"
         },

@@ -5,8 +5,9 @@ provider "azurerm" {
 locals {
   name        = "app"
   environment = "test"
+  # Define public IPs as a local variable for reusability
+  public_ip_names = ["vnet", "app"]
 }
-
 ##----------------------------------------------------------------------------- 
 ## Resource Group module call
 ## Resource group in which all resources will be deployed.
@@ -89,15 +90,14 @@ module "log-analytics" {
 ## All firewall related resources will be deployed from this module, i.e. including firewall and firewall rules.
 ##-----------------------------------------------------------------------------
 module "firewall" {
-  depends_on                 = [module.name_specific_subnet]
-  source                     = "../.."
-  name                       = local.name
-  environment                = local.environment
-  resource_group_name        = module.resource_group.resource_group_name
-  location                   = module.resource_group.resource_group_location
-  subnet_id                  = module.name_specific_subnet.subnet_ids["AzureFirewallSubnet"]
-  primary_public_ip_name     = "ingress"
-  public_ip_names            = ["vnet", "app-4", "aap-1", "app-2"]
+  depends_on          = [module.name_specific_subnet]
+  source              = "../.."
+  name                = local.name
+  environment         = local.environment
+  resource_group_name = module.resource_group.resource_group_name
+  location            = module.resource_group.resource_group_location
+  subnet_id           = module.name_specific_subnet.subnet_ids["AzureFirewallSubnet"]
+  public_ip_names            = local.public_ip_names
   firewall_enable            = true
   public_ip_prefix_enable    = true
   public_ip_prefix_length    = 28
@@ -144,7 +144,7 @@ module "firewall" {
   network_rule_collection = [
     {
       name     = "example_network_policy"
-      priority = "100"
+      priority = 100
       action   = "Allow"
       rules = [
         {
@@ -182,11 +182,11 @@ module "firewall" {
         {
           name                = "web_server_nat"
           protocols           = ["TCP"]
-          source_addresses    = ["*"]                                     # Any source
-          destination_address = module.firewall.primary_public_ip_address # Your firewall's PUBLIC IP
-          destination_ports   = ["8080"]                                  # External port
-          translated_address  = "10.0.1.20"                               # Internal server IP
-          translated_port     = "80"                                      # Internal port
+          source_addresses    = ["*"]                                       # Any source
+          destination_address = module.firewall.public_ip_addresses["vnet"] # Your firewall's PUBLIC IP
+          destination_ports   = ["8080"]                                    # External port
+          translated_address  = "10.0.1.20"                                 # Internal server IP
+          translated_port     = "80"                                        # Internal port
         }
       ]
     }
