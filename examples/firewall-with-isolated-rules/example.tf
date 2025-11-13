@@ -12,8 +12,8 @@ locals {
 ## Resource group in which all resources will be deployed.
 ##-----------------------------------------------------------------------------
 module "resource_group" {
-  source      = "../../../terraform-azure-resource-group" #"terraform-az-modules/resource-group/azure"
- # version     = "1.0.1"
+  source      = "terraform-az-modules/resource-group/azurerm"
+  version     = "1.0.3"
   name        = local.name
   environment = local.environment
   label_order = ["name", "environment"]
@@ -26,8 +26,8 @@ module "resource_group" {
 ##-----------------------------------------------------------------------------
 module "vnet" {
   depends_on          = [module.resource_group]
-  source              = "../../../terraform-azure-vnet" #"terraform-az-modules/vnet/azure"
-  #version             = "1.0.0"
+  source              = "terraform-az-modules/vnet/azurerm"
+  version             = "1.0.3"
   name                = local.name
   environment         = local.environment
   resource_group_name = module.resource_group.resource_group_name
@@ -41,8 +41,8 @@ module "vnet" {
 ##-----------------------------------------------------------------------------
 module "name_specific_subnet" {
   depends_on           = [module.vnet]
-  source               = "../../../terraform-azure-subnet" #"terraform-az-modules/subnet/azure"
-  #version              = "1.0.0"
+  source               = "terraform-az-modules/subnet/azurerm"
+  version              = "1.0.1"
   environment          = "test"
   label_order          = ["name", "environment", ]
   resource_group_name  = module.resource_group.resource_group_name
@@ -74,8 +74,8 @@ module "name_specific_subnet" {
 ## Log Analytic workspace for firerwall diagnostic setting. 
 ##-----------------------------------------------------------------------------
 module "log-analytics" {
-  source                      = "../../../terraform-azure-log-analytics" #"terraform-az-modules/log-analytics/azure"
-  #version                     = "1.0.0"
+  source                      = "terraform-az-modules/log-analytics/azurerm"
+  version                     = "1.0.2"
   name                        = local.name
   environment                 = local.environment
   label_order                 = ["name", "environment", "location"]

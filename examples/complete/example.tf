@@ -13,8 +13,8 @@ locals {
 ## Resource group in which all resources will be deployed.
 ##-----------------------------------------------------------------------------
 module "resource_group" {
-  source      = "terraform-az-modules/resource-group/azure"
-  version     = "1.0.0"
+  source      = "terraform-az-modules/resource-group/azurerm"
+  version     = "1.0.3"
   name        = local.name
   environment = local.environment
   label_order = ["name", "environment", ]
@@ -27,8 +27,8 @@ module "resource_group" {
 ##-----------------------------------------------------------------------------
 module "vnet" {
   depends_on          = [module.resource_group]
-  source              = "terraform-az-modules/vnet/azure"
-  version             = "1.0.0"
+  source              = "terraform-az-modules/vnet/azurerm"
+  version             = "1.0.3"
   name                = local.name
   environment         = local.environment
   resource_group_name = module.resource_group.resource_group_name
@@ -42,8 +42,8 @@ module "vnet" {
 ##-----------------------------------------------------------------------------
 module "name_specific_subnet" {
   depends_on           = [module.vnet]
-  source               = "terraform-az-modules/subnet/azure"
-  version              = "1.0.0"
+  source               = "terraform-az-modules/subnet/azurerm"
+  version              = "1.0.1"
   environment          = "test"
   label_order          = ["name", "environment", ]
   resource_group_name  = module.resource_group.resource_group_name
@@ -75,8 +75,8 @@ module "name_specific_subnet" {
 ## Log Analytic workspace for firerwall diagnostic setting. 
 ##-----------------------------------------------------------------------------
 module "log-analytics" {
-  source                      = "terraform-az-modules/log-analytics/azure"
-  version                     = "1.0.0"
+  source                      = "terraform-az-modules/log-analytics/azurerm"
+  version                     = "1.0.2"
   name                        = local.name
   environment                 = local.environment
   label_order                 = ["name", "environment"]
@@ -90,13 +90,13 @@ module "log-analytics" {
 ## All firewall related resources will be deployed from this module, i.e. including firewall and firewall rules.
 ##-----------------------------------------------------------------------------
 module "firewall" {
-  depends_on          = [module.name_specific_subnet]
-  source              = "../.."
-  name                = local.name
-  environment         = local.environment
-  resource_group_name = module.resource_group.resource_group_name
-  location            = module.resource_group.resource_group_location
-  subnet_id           = module.name_specific_subnet.subnet_ids["AzureFirewallSubnet"]
+  depends_on                 = [module.name_specific_subnet]
+  source                     = "../.."
+  name                       = local.name
+  environment                = local.environment
+  resource_group_name        = module.resource_group.resource_group_name
+  location                   = module.resource_group.resource_group_location
+  subnet_id                  = module.name_specific_subnet.subnet_ids["AzureFirewallSubnet"]
   public_ip_names            = local.public_ip_names
   firewall_enable            = true
   public_ip_prefix_enable    = true

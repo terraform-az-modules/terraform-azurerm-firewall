@@ -288,12 +288,6 @@ variable "network_rule_collection" {
 #-----------------------------------------------------------------------------
 # Nat Rule configuration
 #-----------------------------------------------------------------------------
-variable "dnat_destination_ip" {
-  description = "Variable to specify that you have destination ip to attach to policy or not.(Destination ip is public ip that is attached to firewall)"
-  type        = bool
-  default     = true
-}
-
 variable "nat_policy_collection_group" {
   type        = string
   default     = "DefaultDnatRuleCollectionGroup"
