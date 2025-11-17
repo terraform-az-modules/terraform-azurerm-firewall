@@ -118,11 +118,6 @@ variable "public_ip_prefix_enable" {
 
 }
 
-# variable "primary_public_ip_name" {
-#   description = "One of public_ip_names. Used for the subneted ip_configuration."
-#   type        = string
-# }
-
 variable "public_ip_allocation_method" {
   type        = string
   description = "Defines the allocation method for this IP address. Possible values are Static or Dynamic"
@@ -321,7 +316,7 @@ variable "nat_rule_collection" {
 variable "enable_diagnostic" {
   type        = bool
   default     = false
-  description = "Set to false to prevent the module from creating the diagnosys setting for the firewall Resource.."
+  description = "Set to false to prevent the module from creating the diagnostics setting for the firewall Resource.."
 }
 
 variable "storage_account_id" {

@@ -159,7 +159,7 @@ module "firewall" {
     },
     {
       name     = "example_network_policy-2"
-      priority = "101"
+      priority = 101
       action   = "Allow"
       rules = [
         {

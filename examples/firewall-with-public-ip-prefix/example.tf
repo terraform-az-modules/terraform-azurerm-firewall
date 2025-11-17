@@ -137,7 +137,7 @@ module "firewall" {
   network_rule_collection = [
     {
       name     = "example_network_policy"
-      priority = "100"
+      priority = 100
       action   = "Allow"
       rules = [
         {
@@ -152,7 +152,7 @@ module "firewall" {
     },
     {
       name     = "example_network_policy-2"
-      priority = "101"
+      priority = 101
       action   = "Allow"
       rules = [
         {
@@ -169,7 +169,7 @@ module "firewall" {
   nat_rule_collection = [
     {
       name     = "example_nat_policy-1"
-      priority = "101"
+      priority = 101
       rules = [
         {
           name                = "nat_rule_collection1_rule1"
