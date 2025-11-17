@@ -1,6 +1,6 @@
 <!-- BEGIN_TF_DOCS -->
 
-# Terraform Azure Application Insights
+# Terraform Azure Firewall
 
 This directory contains an example usage of the **terraform-azure-firewall**. It demonstrates how to use the module with default settings or with custom configurations.
 

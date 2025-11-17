@@ -78,7 +78,7 @@ This table contains both Prerequisites and Providers:
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_labels"></a> [labels](#module\_labels) | terraform-az-modules/tags/azure | 1.0.0 |
+| <a name="module_labels"></a> [labels](#module\_labels) | terraform-az-modules/tags/azurerm | 1.0.2 |
 
 ## Resources
 
@@ -86,41 +86,37 @@ This table contains both Prerequisites and Providers:
 |------|------|
 | [azurerm_firewall.firewall](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/firewall) | resource |
 | [azurerm_firewall_policy.policy](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/firewall_policy) | resource |
-| [azurerm_firewall_policy_rule_collection_group.app_policy_rule_collection_group](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/firewall_policy_rule_collection_group) | resource |
-| [azurerm_firewall_policy_rule_collection_group.nat_policy_rule_collection_group](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/firewall_policy_rule_collection_group) | resource |
-| [azurerm_firewall_policy_rule_collection_group.network_policy_rule_collection_group](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/firewall_policy_rule_collection_group) | resource |
-| [azurerm_monitor_diagnostic_setting.firewall_diagnostic_setting](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_diagnostic_setting) | resource |
-| [azurerm_public_ip.primary_public_ip](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/public_ip) | resource |
+| [azurerm_firewall_policy_rule_collection_group.app_policy](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/firewall_policy_rule_collection_group) | resource |
+| [azurerm_firewall_policy_rule_collection_group.nat_policy](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/firewall_policy_rule_collection_group) | resource |
+| [azurerm_firewall_policy_rule_collection_group.network_policy](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/firewall_policy_rule_collection_group) | resource |
+| [azurerm_monitor_diagnostic_setting.firewall_diagnostic](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_diagnostic_setting) | resource |
 | [azurerm_public_ip.public_ip](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/public_ip) | resource |
-| [azurerm_public_ip_prefix.pip-prefix](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/public_ip_prefix) | resource |
+| [azurerm_public_ip_prefix.pip_prefix](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/public_ip_prefix) | resource |
 | [azurerm_user_assigned_identity.identity](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/user_assigned_identity) | resource |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_additional_public_ips"></a> [additional\_public\_ips](#input\_additional\_public\_ips) | List of additional public ips' ids to attach to the firewall. | <pre>list(object({<br>    name                 = string,<br>    public_ip_address_id = string<br>  }))</pre> | `[]` | no |
 | <a name="input_app_policy_collection_group"></a> [app\_policy\_collection\_group](#input\_app\_policy\_collection\_group) | (optional) Name of app policy group | `string` | `"DefaultApplicationRuleCollectionGroup"` | no |
 | <a name="input_application_rule_collection"></a> [application\_rule\_collection](#input\_application\_rule\_collection) | List of application rule collections for the firewall policy. | <pre>list(object({<br>    name     = string<br>    priority = number<br>    action   = string<br>    rules = list(object({<br>      name                  = string<br>      source_addresses      = optional(list(string), []) # Optional: List of source IP addresses<br>      source_ip_groups      = optional(list(string), []) # Optional: List of source IP groups<br>      destination_fqdns     = optional(list(string), []) # Optional: List of destination FQDNs<br>      destination_ip_groups = optional(list(string), []) # Optional: List of destination IP groups<br>      protocols = list(object({<br>        port = optional(number, null) # Optional: Port number<br>        type = optional(string, null) # Optional: Protocol type (e.g., TCP, UDP)<br>      }))<br>    }))<br>  }))</pre> | `[]` | no |
 | <a name="input_custom_name"></a> [custom\_name](#input\_custom\_name) | Override default naming convention | `string` | `null` | no |
 | <a name="input_deployment_mode"></a> [deployment\_mode](#input\_deployment\_mode) | Specifies how the infrastructure/resource is deployed | `string` | `"terraform"` | no |
-| <a name="input_dnat_destination_ip"></a> [dnat\_destination\_ip](#input\_dnat\_destination\_ip) | Variable to specify that you have destination ip to attach to policy or not.(Destination ip is public ip that is attached to firewall) | `bool` | `true` | no |
 | <a name="input_dns_servers"></a> [dns\_servers](#input\_dns\_servers) | DNS Servers to use with Azure Firewall. Using this also activate DNS Proxy. | `list(string)` | `null` | no |
-| <a name="input_enable_diagnostic"></a> [enable\_diagnostic](#input\_enable\_diagnostic) | Set to false to prevent the module from creating the diagnosys setting for the NSG Resource.. | `bool` | `false` | no |
-| <a name="input_enable_ip_subnet"></a> [enable\_ip\_subnet](#input\_enable\_ip\_subnet) | Should subnet id be attached to first public ip name specified in public ip names variable. To be true when there is no individual public ip. | `bool` | `true` | no |
+| <a name="input_enable_diagnostic"></a> [enable\_diagnostic](#input\_enable\_diagnostic) | Set to false to prevent the module from creating the diagnosys setting for the firewall Resource.. | `bool` | `false` | no |
 | <a name="input_enabled"></a> [enabled](#input\_enabled) | Set to false to prevent the module from creating any resources. | `bool` | `true` | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | Environment (e.g. `prod`, `dev`, `staging`). | `string` | `""` | no |
-| <a name="input_eventhub_authorization_rule_id"></a> [eventhub\_authorization\_rule\_id](#input\_eventhub\_authorization\_rule\_id) | Eventhub authorization rule id to pass it to destination details of diagnosys setting of NSG. | `string` | `null` | no |
-| <a name="input_eventhub_name"></a> [eventhub\_name](#input\_eventhub\_name) | Eventhub Name to pass it to destination details of diagnosys setting of NSG. | `string` | `null` | no |
+| <a name="input_eventhub_authorization_rule_id"></a> [eventhub\_authorization\_rule\_id](#input\_eventhub\_authorization\_rule\_id) | Eventhub authorization rule id to pass it to destination details of diagnosys setting of firewall. | `string` | `null` | no |
+| <a name="input_eventhub_name"></a> [eventhub\_name](#input\_eventhub\_name) | Eventhub Name to pass it to destination details of diagnosys setting of firewall. | `string` | `null` | no |
 | <a name="input_extra_tags"></a> [extra\_tags](#input\_extra\_tags) | Variable to pass extra tags. | `map(string)` | `null` | no |
 | <a name="input_firewall_enable"></a> [firewall\_enable](#input\_firewall\_enable) | values are true or false. Set to true to enable the firewall creation. If set to false, no firewall will be created. | `bool` | `false` | no |
 | <a name="input_firewall_policy_id"></a> [firewall\_policy\_id](#input\_firewall\_policy\_id) | The ID of the Firewall Policy. | `string` | `null` | no |
 | <a name="input_firewall_private_ip_ranges"></a> [firewall\_private\_ip\_ranges](#input\_firewall\_private\_ip\_ranges) | A list of SNAT private CIDR IP ranges, or the special string `IANAPrivateRanges`, which indicates Azure Firewall does not SNAT when the destination IP address is a private range per IANA RFC 1918. | `list(string)` | `null` | no |
 | <a name="input_identity_type"></a> [identity\_type](#input\_identity\_type) | Specifies the type of Managed Service Identity that should be configured on this Storage Account. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both). | `string` | `"UserAssigned"` | no |
 | <a name="input_label_order"></a> [label\_order](#input\_label\_order) | Order of labels in the resource name. The order of labels in the resource name. The default order is ['name', 'environment', 'location']. You can change this to ['environment', 'name', 'location'] or any other order as per your requirements. | `list(any)` | <pre>[<br>  "name",<br>  "environment",<br>  "location"<br>]</pre> | no |
-| <a name="input_location"></a> [location](#input\_location) | The location/region where the key vault is created. Changing this forces a new resource to be created. | `string` | `""` | no |
+| <a name="input_location"></a> [location](#input\_location) | The location/region where the firewall is created. Changing this forces a new resource to be created. | `string` | `""` | no |
 | <a name="input_log_analytics_destination_type"></a> [log\_analytics\_destination\_type](#input\_log\_analytics\_destination\_type) | Possible values are AzureDiagnostics and Dedicated, default to AzureDiagnostics. When set to Dedicated, logs sent to a Log Analytics workspace will go into resource specific tables, instead of the legacy AzureDiagnostics table. | `string` | `"AzureDiagnostics"` | no |
-| <a name="input_log_analytics_workspace_id"></a> [log\_analytics\_workspace\_id](#input\_log\_analytics\_workspace\_id) | log analytics workspace id to pass it to destination details of diagnosys setting of NSG. | `string` | `null` | no |
+| <a name="input_log_analytics_workspace_id"></a> [log\_analytics\_workspace\_id](#input\_log\_analytics\_workspace\_id) | log analytics workspace id to pass it to destination details of diagnosys setting of firewall. | `string` | `null` | no |
 | <a name="input_logs"></a> [logs](#input\_logs) | List of logs to enable for the diagnosys setting. | <pre>list(object({<br>    category_group = optional(string)<br>    category       = optional(string)<br>  }))</pre> | `[]` | no |
 | <a name="input_managedby"></a> [managedby](#input\_managedby) | ManagedBy, eg 'terraform-az-modules'. | `string` | `"terraform-az-modules"` | no |
 | <a name="input_metric_enabled"></a> [metric\_enabled](#input\_metric\_enabled) | Set to true to enable metrics for the diagnosys setting. | `bool` | `false` | no |
@@ -130,24 +126,20 @@ This table contains both Prerequisites and Providers:
 | <a name="input_net_policy_collection_group"></a> [net\_policy\_collection\_group](#input\_net\_policy\_collection\_group) | (optional) Name of network policy group | `string` | `"DefaultNetworkRuleCollectionGroup"` | no |
 | <a name="input_network_rule_collection"></a> [network\_rule\_collection](#input\_network\_rule\_collection) | List of network rule collections for the firewall policy. | <pre>list(object({<br>    name        = string<br>    priority    = number<br>    action      = string<br>    description = optional(string, null) # Optional: Description of the rule collection<br>    rules = list(object({<br>      name                  = string<br>      protocols             = list(string)               # List of protocols (e.g., TCP, UDP, ICMP)<br>      source_addresses      = optional(list(string), []) # Optional: List of source IP addresses<br>      source_ip_groups      = optional(list(string), []) # Optional: List of source IP groups<br>      destination_addresses = optional(list(string), []) # Optional: List of destination IP addresses<br>      destination_ip_groups = optional(list(string), []) # Optional: List of destination IP groups<br>      destination_ports     = optional(list(string), []) # Optional: List of destination ports<br>      destination_fqdns     = optional(list(string), []) # Optional: List of destination FQDNs<br>    }))<br>  }))</pre> | `[]` | no |
 | <a name="input_policy_rule_enabled"></a> [policy\_rule\_enabled](#input\_policy\_rule\_enabled) | Flag used to control creation of policy rules. | `bool` | `false` | no |
-| <a name="input_prefix_public_ip_allocation_method"></a> [prefix\_public\_ip\_allocation\_method](#input\_prefix\_public\_ip\_allocation\_method) | Defines the allocation method for this IP address. Possible values are Static or Dynamic | `string` | `"Static"` | no |
-| <a name="input_prefix_public_ip_names"></a> [prefix\_public\_ip\_names](#input\_prefix\_public\_ip\_names) | List of public IP names to associate with the public IP prefix. If empty, no public IPs will be associated with the prefix. | `list(string)` | `[]` | no |
-| <a name="input_prefix_public_ip_sku"></a> [prefix\_public\_ip\_sku](#input\_prefix\_public\_ip\_sku) | The SKU of the Public IP Prefix. Accepted values are Basic and Standard. Defaults to Standard | `string` | `"Standard"` | no |
-| <a name="input_primary_public_ip_name"></a> [primary\_public\_ip\_name](#input\_primary\_public\_ip\_name) | One of public\_ip\_names. Used for the subneted ip\_configuration. | `string` | n/a | yes |
 | <a name="input_public_ip_allocation_method"></a> [public\_ip\_allocation\_method](#input\_public\_ip\_allocation\_method) | Defines the allocation method for this IP address. Possible values are Static or Dynamic | `string` | `"Static"` | no |
-| <a name="input_public_ip_names"></a> [public\_ip\_names](#input\_public\_ip\_names) | List of public IP names to create. If empty, a single public IP will be created with the name 'firewall-public-ip'. | `list(string)` | `[]` | no |
+| <a name="input_public_ip_names"></a> [public\_ip\_names](#input\_public\_ip\_names) | List of public IP names to create. | `list(string)` | `[]` | no |
 | <a name="input_public_ip_prefix_enable"></a> [public\_ip\_prefix\_enable](#input\_public\_ip\_prefix\_enable) | Flag to control creation of public ip prefix resource. | `bool` | `false` | no |
 | <a name="input_public_ip_prefix_ip_version"></a> [public\_ip\_prefix\_ip\_version](#input\_public\_ip\_prefix\_ip\_version) | The IP Version to use, IPv6 or IPv4. Changing this forces a new resource to be created. Default is IPv4 | `string` | `"IPv4"` | no |
-| <a name="input_public_ip_prefix_length"></a> [public\_ip\_prefix\_length](#input\_public\_ip\_prefix\_length) | Specifies the number of bits of the prefix. The value can be set between 0 (4,294,967,296 addresses) and 31 (2 addresses). Defaults to 28(16 addresses). Changing this forces a new resource to be created. | `number` | `31` | no |
+| <a name="input_public_ip_prefix_length"></a> [public\_ip\_prefix\_length](#input\_public\_ip\_prefix\_length) | Specifies the number of bits of the prefix. The value can be set between 0 (4,294,967,296 addresses) and 31 (2 addresses). Defaults to 28(16 addresses). Changing this forces a new resource to be created. | `number` | `28` | no |
 | <a name="input_public_ip_prefix_sku"></a> [public\_ip\_prefix\_sku](#input\_public\_ip\_prefix\_sku) | SKU for public ip prefix. Default to standard. | `string` | `"Standard"` | no |
-| <a name="input_public_ip_sku"></a> [public\_ip\_sku](#input\_public\_ip\_sku) | The SKU of the Public IP. Accepted values are Basic and Standard. Defaults to Basic | `string` | `"Standard"` | no |
-| <a name="input_repository"></a> [repository](#input\_repository) | Terraform current module repo | `string` | `"https://github.com/terraform-az-modules/terraform-azure-key-vault"` | no |
+| <a name="input_public_ip_sku"></a> [public\_ip\_sku](#input\_public\_ip\_sku) | The SKU of the Public IP. Accepted values are Basic and Standard. Defaults to Standard | `string` | `"Standard"` | no |
+| <a name="input_repository"></a> [repository](#input\_repository) | Terraform current module repo | `string` | `"https://github.com/terraform-az-modules/terraform-azure-firewall"` | no |
 | <a name="input_resource_group_name"></a> [resource\_group\_name](#input\_resource\_group\_name) | A container that holds related resources for an Azure solution | `string` | `""` | no |
 | <a name="input_resource_position_prefix"></a> [resource\_position\_prefix](#input\_resource\_position\_prefix) | Controls the placement of the resource type keyword (e.g., "vnet", "ddospp") in the resource name.<br><br>- If true, the keyword is prepended: "vnet-core-dev".<br>- If false, the keyword is appended: "core-dev-vnet".<br><br>This helps maintain naming consistency based on organizational preferences. | `bool` | `true` | no |
-| <a name="input_sku_name"></a> [sku\_name](#input\_sku\_name) | (optional) describe your variable | `string` | `"AZFW_VNet"` | no |
+| <a name="input_sku_name"></a> [sku\_name](#input\_sku\_name) | SKU name of the Firewall. Possible values are `AZFW_VNet` and `AZFW_Hub`. | `string` | `"AZFW_VNet"` | no |
 | <a name="input_sku_policy"></a> [sku\_policy](#input\_sku\_policy) | Specifies the firewall-policy sku | `string` | `"Standard"` | no |
 | <a name="input_sku_tier"></a> [sku\_tier](#input\_sku\_tier) | Specifies the firewall sku tier | `string` | `"Standard"` | no |
-| <a name="input_storage_account_id"></a> [storage\_account\_id](#input\_storage\_account\_id) | Storage account id to pass it to destination details of diagnosys setting of NSG. | `string` | `null` | no |
+| <a name="input_storage_account_id"></a> [storage\_account\_id](#input\_storage\_account\_id) | Storage account id to pass it to destination details of diagnosys setting of firewall. | `string` | `null` | no |
 | <a name="input_subnet_id"></a> [subnet\_id](#input\_subnet\_id) | The ID of the subnet to attach the firewall to. If not specified, the module will create a new subnet named 'AzureFirewallSubnet' in the specified virtual network. | `string` | `""` | no |
 | <a name="input_threat_intel_mode"></a> [threat\_intel\_mode](#input\_threat\_intel\_mode) | (Optional) The operation mode for threat intelligence-based filtering. Possible values are: Off, Alert, Deny. Defaults to Alert. | `string` | `"Alert"` | no |
 
@@ -158,9 +150,6 @@ This table contains both Prerequisites and Providers:
 | <a name="output_firewall_id"></a> [firewall\_id](#output\_firewall\_id) | Firewall ID |
 | <a name="output_firewall_name"></a> [firewall\_name](#output\_firewall\_name) | Firewall name |
 | <a name="output_firewall_policy_id"></a> [firewall\_policy\_id](#output\_firewall\_policy\_id) | value of firewall policy ID |
-| <a name="output_primary_public_ip_address"></a> [primary\_public\_ip\_address](#output\_primary\_public\_ip\_address) | Primary public IP address (clean) |
-| <a name="output_primary_public_ip_id"></a> [primary\_public\_ip\_id](#output\_primary\_public\_ip\_id) | ID of the primary public IP (clean) |
-| <a name="output_primary_public_ip_name"></a> [primary\_public\_ip\_name](#output\_primary\_public\_ip\_name) | Name of the primary public IP (clean) |
 | <a name="output_public_ip_addresses"></a> [public\_ip\_addresses](#output\_public\_ip\_addresses) | value of public IP addresses |
 | <a name="output_public_ip_ids"></a> [public\_ip\_ids](#output\_public\_ip\_ids) | The IDs of all public IPs |
 | <a name="output_public_ip_prefix_id"></a> [public\_ip\_prefix\_id](#output\_public\_ip\_prefix\_id) | value of public IP prefix ID |
