@@ -59,7 +59,7 @@ resource "azurerm_firewall" "firewall" {
   threat_intel_mode   = var.threat_intel_mode
   sku_tier            = var.sku_tier
   sku_name            = var.sku_name
-  firewall_policy_id  = join("", azurerm_firewall_policy.policy.*.id)
+  firewall_policy_id  = join("", [for p in azurerm_firewall_policy.policy : p.id])
   tags                = module.labels.tags
   private_ip_ranges   = var.firewall_private_ip_ranges
   dns_servers         = var.dns_servers
@@ -100,7 +100,7 @@ resource "azurerm_firewall_policy" "policy" {
     for_each = var.identity_type != null && var.sku_policy == "Premium" && var.sku_tier == "Premium" ? [1] : []
     content {
       type         = var.identity_type
-      identity_ids = var.identity_type == "UserAssigned" ? [join("", azurerm_user_assigned_identity.identity.*.id)] : null
+      identity_ids = var.identity_type == "UserAssigned" ? [for i in azurerm_user_assigned_identity.identity : i.id] : null
     }
   }
 }
@@ -112,7 +112,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "app_policy" {
   depends_on         = [azurerm_firewall_policy.policy]
   count              = var.enabled && var.policy_rule_enabled ? 1 : 0
   name               = var.app_policy_collection_group
-  firewall_policy_id = var.firewall_policy_id == null ? join("", azurerm_firewall_policy.policy.*.id) : var.firewall_policy_id
+  firewall_policy_id = var.firewall_policy_id == null ? join("", [for p in azurerm_firewall_policy.policy : p.id]) : var.firewall_policy_id
   priority           = 300
 
   dynamic "application_rule_collection" {
@@ -147,7 +147,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "network_policy" {
   depends_on         = [azurerm_firewall_policy.policy]
   count              = var.enabled && var.policy_rule_enabled ? 1 : 0
   name               = var.net_policy_collection_group
-  firewall_policy_id = var.firewall_policy_id == null ? join("", azurerm_firewall_policy.policy.*.id) : var.firewall_policy_id
+  firewall_policy_id = var.firewall_policy_id == null ? join("", [for p in azurerm_firewall_policy.policy : p.id]) : var.firewall_policy_id
   priority           = 200
 
   dynamic "network_rule_collection" {
@@ -178,7 +178,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "nat_policy" {
   depends_on         = [azurerm_firewall_policy.policy]
   count              = var.enabled && var.policy_rule_enabled ? 1 : 0
   name               = var.nat_policy_collection_group
-  firewall_policy_id = var.firewall_policy_id == null ? join("", azurerm_firewall_policy.policy.*.id) : var.firewall_policy_id
+  firewall_policy_id = var.firewall_policy_id == null ? join("", [for p in azurerm_firewall_policy.policy : p.id]) : var.firewall_policy_id
   priority           = 100
 
   dynamic "nat_rule_collection" {

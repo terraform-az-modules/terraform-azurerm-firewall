@@ -3,7 +3,7 @@ provider "azurerm" {
 }
 
 locals {
-  name        = "app"
+  name        = "cap"
   environment = "test"
 }
 
@@ -95,12 +95,14 @@ module "firewall" {
   source                     = "../.."
   name                       = local.name
   environment                = local.environment
+  resource_position_prefix   = false
   resource_group_name        = module.resource_group.resource_group_name
   location                   = module.resource_group.resource_group_location
   subnet_id                  = module.name_specific_subnet.subnet_ids["AzureFirewallSubnet"]
   public_ip_names            = ["ingress", "vnet"] // Name of public ips you want to create.
   firewall_enable            = true
   enable_diagnostic          = true
+  public_ip_prefix_enable    = true
   log_analytics_workspace_id = module.log-analytics.workspace_id
   logs = [{
     category = "AzureFirewallApplicationRule"

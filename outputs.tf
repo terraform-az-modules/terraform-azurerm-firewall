@@ -1,10 +1,10 @@
 output "firewall_id" {
   description = "Firewall ID"
-  value       = join("", azurerm_firewall.firewall.*.id)
+  value       = join("", [for f in azurerm_firewall.firewall : f.id])
 }
 
 output "firewall_name" {
-  value       = join("", azurerm_firewall.firewall.*.name)
+  value       = join("", [for f in azurerm_firewall.firewall : f.name])
   description = "Firewall name"
 }
 
@@ -20,11 +20,11 @@ output "public_ip_addresses" {
 
 output "firewall_policy_id" {
   description = "value of firewall policy ID"
-  value       = join("", azurerm_firewall_policy.policy.*.id)
+  value       = join("", [for p in azurerm_firewall_policy.policy : p.id])
 }
 
 output "public_ip_prefix_id" {
   description = "value of public IP prefix ID"
-  value       = join("", azurerm_public_ip_prefix.pip_prefix.*.id)
+  value       = join("", [for p in azurerm_public_ip_prefix.pip_prefix : p.id])
 }
 
