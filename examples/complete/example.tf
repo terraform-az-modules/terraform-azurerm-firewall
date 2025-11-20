@@ -98,7 +98,7 @@ module "firewall" {
   location                   = module.resource_group.resource_group_location
   subnet_id                  = module.name_specific_subnet.subnet_ids["AzureFirewallSubnet"]
   public_ip_names            = local.public_ip_names
-  firewall_enable            = true
+  firewall_enable            = true # if not want firewall, firewall_enable = false but same for policy_rule_enabled = false to avoid errors
   public_ip_prefix_enable    = true
   public_ip_prefix_length    = 28
   policy_rule_enabled        = true

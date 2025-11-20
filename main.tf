@@ -38,7 +38,7 @@ resource "azurerm_public_ip" "public_ip" {
   resource_group_name  = var.resource_group_name
   allocation_method    = var.public_ip_allocation_method
   sku                  = var.public_ip_sku
-  public_ip_prefix_id  = var.public_ip_prefix_enable ? azurerm_public_ip_prefix.pip_prefix[0].id : null
+  public_ip_prefix_id  = var.public_ip_prefix_enable && length(azurerm_public_ip_prefix.pip_prefix) > 0 ? azurerm_public_ip_prefix.pip_prefix[0].id : null
   ddos_protection_mode = "VirtualNetworkInherited"
   tags                 = module.labels.tags
 
