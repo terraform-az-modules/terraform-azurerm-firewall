@@ -3,11 +3,10 @@ provider "azurerm" {
 }
 
 locals {
-  name        = "app"
+  name        = "cap"
   environment = "test"
-  # Define public IPs as a local variable for reusability
-  public_ip_names = ["vnet", "app"]
 }
+
 ##----------------------------------------------------------------------------- 
 ## Resource Group module call
 ## Resource group in which all resources will be deployed.
@@ -17,7 +16,7 @@ module "resource_group" {
   version     = "1.0.3"
   name        = local.name
   environment = local.environment
-  label_order = ["name", "environment", ]
+  label_order = ["name", "environment"]
   location    = "East US"
 }
 
@@ -79,43 +78,50 @@ module "log-analytics" {
   version                     = "1.0.2"
   name                        = local.name
   environment                 = local.environment
-  label_order                 = ["name", "environment"]
+  label_order                 = ["name", "environment", "location"]
   log_analytics_workspace_sku = "PerGB2018"
   resource_group_name         = module.resource_group.resource_group_name
   location                    = module.resource_group.resource_group_location
+
 }
+
 
 ##----------------------------------------------------------------------------- 
 ## Firewall module call. 
-## All firewall related resources will be deployed from this module, i.e. including firewall and firewall rules.
+## From this module call firewall rules will not be deployed and thus no rule collection group will be created.  
 ##-----------------------------------------------------------------------------
 module "firewall" {
   depends_on                 = [module.name_specific_subnet]
   source                     = "../.."
   name                       = local.name
   environment                = local.environment
+  resource_position_prefix   = false
   resource_group_name        = module.resource_group.resource_group_name
   location                   = module.resource_group.resource_group_location
   subnet_id                  = module.name_specific_subnet.subnet_ids["AzureFirewallSubnet"]
-  public_ip_names            = local.public_ip_names
-  firewall_enable            = true # if not want firewall, firewall_enable = false but same for policy_rule_enabled = false to avoid errors
-  public_ip_prefix_enable    = true
-  public_ip_prefix_length    = 28
-  policy_rule_enabled        = true
+  public_ip_names            = ["ingress", "vnet"] // Name of public ips you want to create.
+  firewall_enable            = true
   enable_diagnostic          = true
+  public_ip_prefix_enable    = true
   log_analytics_workspace_id = module.log-analytics.workspace_id
-  logs = [
-    {
-      category = "AzureFirewallApplicationRule"
-    },
-    {
-      category = "AzureFirewallNetworkRule"
-    },
-    {
-      category = "AzureFirewallDnsProxy"
+  logs = [{
+    category = "AzureFirewallApplicationRule"
     },
   ]
 
+}
+
+##----------------------------------------------------------------------------- 
+## Firewall-Rules module call. 
+## This is same module as 'firewall module', but from this module only firewall rules and rule collection group will be deployed. 
+##-----------------------------------------------------------------------------
+module "firewall-rules" {
+  depends_on          = [module.firewall]
+  source              = "../.."
+  name                = local.name
+  environment         = local.environment
+  policy_rule_enabled = true
+  firewall_policy_id  = module.firewall.firewall_policy_id
   application_rule_collection = [
     {
       name     = "example_app_policy"
@@ -140,7 +146,6 @@ module "firewall" {
       ]
     }
   ]
-
   network_rule_collection = [
     {
       name     = "example_network_policy"
@@ -175,20 +180,19 @@ module "firewall" {
 
   nat_rule_collection = [
     {
-      name        = "web_server_nat_policy"
-      priority    = 100
-      description = "Redirects external traffic to internal web server"
+      name     = "example_nat_policy-1"
+      priority = 101
       rules = [
         {
-          name                = "web_server_nat"
-          protocols           = ["TCP"]
-          source_addresses    = ["*"]                                       # Any source
-          destination_address = module.firewall.public_ip_addresses["vnet"] # Your firewall's PUBLIC IP
-          destination_ports   = ["8080"]                                    # External port
-          translated_address  = "10.0.1.20"                                 # Internal server IP
-          translated_port     = "80"                                        # Internal port
-        }
+          name                = "nat_rule_collection1_rule1"
+          protocols           = ["TCP", "UDP"]
+          source_addresses    = ["10.0.0.1", "10.0.0.2"]
+          destination_address = module.firewall.public_ip_addresses["vnet"]
+          destination_ports   = ["80"]
+          translated_address  = "192.168.0.1"
+          translated_port     = "8080"
+        },
       ]
-    }
+    },
   ]
 }
