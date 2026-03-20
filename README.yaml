@@ -39,9 +39,9 @@ providers:
 #  description of this project
 # description of this project
 description: |-
-  The Terraform Azure Firewall Module is designed to simplify the deployment and management of Azure Firewall resources. 
-  It provides a comprehensive solution for securing your Azure environment by enabling centralized network security policies, 
-  traffic filtering, and threat protection. This module supports advanced features such as DDoS protection, 
+  The Terraform Azure Firewall Module is designed to simplify the deployment and management of Azure Firewall resources.
+  It provides a comprehensive solution for securing your Azure environment by enabling centralized network security policies,
+  traffic filtering, and threat protection. This module supports advanced features such as DDoS protection,
   firewall policies, rule collections (application, network, and NAT), and diagnostic settings for monitoring and auditing.
 
   Key Features:
@@ -258,7 +258,7 @@ usage: |-
             source_addresses    = ["*"]
             translated_port     = "80"
             translated_address  = "10.1.1.1"                           #provide private ip address to translate
-            destination_address = module.firewall.public_ip_addresses["ingress"]  //Public ip associated with firewall. 
+            destination_address = module.firewall.public_ip_addresses["ingress"]  //Public ip associated with firewall.
           },
           {
             name                = "https"
