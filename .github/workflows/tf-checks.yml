@@ -10,19 +10,19 @@ jobs:
     uses: clouddrove/github-shared-workflows/.github/workflows/tf-checks.yml@master
     with:
       working_directory: 'examples/complete/'
-      provider: azurerm
+      provider: none
 
   firewall-with-isolated-rules-example:
     uses: clouddrove/github-shared-workflows/.github/workflows/tf-checks.yml@master
     with:
       working_directory: 'examples/firewall-with-isolated-rules/'
-      provider: azurerm
+      provider: none
   
   firewall-with-public-ip-prefix-example:
     uses: clouddrove/github-shared-workflows/.github/workflows/tf-checks.yml@master
     with:
       working_directory: 'examples/firewall-with-public-ip-prefix/'
-      provider: azurerm
+      provider: none
 # Seperate Job for TFlint workflow call
   tf-lint:
     uses: clouddrove/github-shared-workflows/.github/workflows/tf-lint.yml@master
