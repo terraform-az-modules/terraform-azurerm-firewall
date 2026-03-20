@@ -7,7 +7,7 @@ locals {
   environment = "test"
 }
 
-##----------------------------------------------------------------------------- 
+##-----------------------------------------------------------------------------
 ## Resource Group module call
 ## Resource group in which all resources will be deployed.
 ##-----------------------------------------------------------------------------
@@ -20,9 +20,9 @@ module "resource_group" {
   location    = "East US"
 }
 
-##----------------------------------------------------------------------------- 
+##-----------------------------------------------------------------------------
 ## Virtual Network module call.
-## Virtual Network in firewall specific subnet will be created. 
+## Virtual Network in firewall specific subnet will be created.
 ##-----------------------------------------------------------------------------
 module "vnet" {
   depends_on          = [module.resource_group]
@@ -35,9 +35,9 @@ module "vnet" {
   address_spaces      = ["10.0.0.0/16"]
 }
 
-##----------------------------------------------------------------------------- 
-## Subnet module call. 
-## Name specific subnet for firewall will be created. 
+##-----------------------------------------------------------------------------
+## Subnet module call.
+## Name specific subnet for firewall will be created.
 ##-----------------------------------------------------------------------------
 module "name_specific_subnet" {
   depends_on           = [module.vnet]
@@ -69,9 +69,9 @@ module "name_specific_subnet" {
   ]
 }
 
-##----------------------------------------------------------------------------- 
+##-----------------------------------------------------------------------------
 ## Log Analytic Module Call.
-## Log Analytic workspace for firerwall diagnostic setting. 
+## Log Analytic workspace for firerwall diagnostic setting.
 ##-----------------------------------------------------------------------------
 module "log-analytics" {
   source                      = "terraform-az-modules/log-analytics/azurerm"
@@ -86,9 +86,9 @@ module "log-analytics" {
 }
 
 
-##----------------------------------------------------------------------------- 
-## Firewall module call. 
-## From this module call firewall rules will not be deployed and thus no rule collection group will be created.  
+##-----------------------------------------------------------------------------
+## Firewall module call.
+## From this module call firewall rules will not be deployed and thus no rule collection group will be created.
 ##-----------------------------------------------------------------------------
 module "firewall" {
   depends_on                 = [module.name_specific_subnet]
@@ -111,9 +111,9 @@ module "firewall" {
 
 }
 
-##----------------------------------------------------------------------------- 
-## Firewall-Rules module call. 
-## This is same module as 'firewall module', but from this module only firewall rules and rule collection group will be deployed. 
+##-----------------------------------------------------------------------------
+## Firewall-Rules module call.
+## This is same module as 'firewall module', but from this module only firewall rules and rule collection group will be deployed.
 ##-----------------------------------------------------------------------------
 module "firewall-rules" {
   depends_on          = [module.firewall]
