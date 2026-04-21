@@ -1,303 +1,44 @@
----
-#
-# This is the canonical configuration for the `README.md`
-# Run `make readme` to rebuild the `README.md`
-#
+name: Terraform Azure Firewall
 
-# Name of this project
-name: Terraform Azure Firewall Module
+intro: |-
+  With our comprehensive DevOps toolkit - streamline operations, automate workflows, enhance collaboration and deploy with confidence.
 
-# License of this project
+badges_text: "Latest Release | tfsec | License | Changelog"
+
+about: |-
+  Terraform module to create and manage Firewall on Azure.
+
 license: "APACHE"
 
-# Canonical GitHub repo
-github_repo: terraform-az-modules/terraform-azure-firewall
+github_repo: terraform-az-modules/terraform-azurerm-firewall
 
-# Badges to display
 badges:
   - name: "Terraform"
-    image: "https://img.shields.io/badge/Terraform-v0.13-green"
+    image: "https://img.shields.io/badge/Terraform-v1.10.0-green"
     url: "https://www.terraform.io"
+
   - name: "Licence"
     image: "https://img.shields.io/badge/License-APACHE-blue.svg"
     url: "LICENSE.md"
-  - name: "Changelog"
-    image: "https://img.shields.io/badge/Changelog-blue"
-    url: "CHANGELOG.md"
 
-# Prerequesties to display
-prerequesties:
+prerequisites:
   - name: Terraform
     url: https://learn.hashicorp.com/terraform/getting-started/install.html
-    version: ">= 1.6.6"
+    version: ">= 1.10.0"
 
 providers:
-  - name: azure
-    url: https://azure.microsoft.com/
-    version: ">= 3.116.0"
+  - name: azurerm
+    url: https://registry.terraform.io/providers/hashicorp/azurerm/latest
+    version: ">= 4.0"
 
-#  description of this project
-# description of this project
 description: |-
-  The Terraform Azure Firewall Module is designed to simplify the deployment and management of Azure Firewall resources.
-  It provides a comprehensive solution for securing your Azure environment by enabling centralized network security policies,
-  traffic filtering, and threat protection. This module supports advanced features such as DDoS protection,
-  firewall policies, rule collections (application, network, and NAT), and diagnostic settings for monitoring and auditing.
+  Terraform module to create and manage Firewall on Azure.
 
-  Key Features:
-  - Deploy Azure Firewall with customizable configurations.
-  - Manage public IPs and public IP prefixes for scalability.
-  - Define firewall policies with advanced security features like TLS inspection and IDPS.
-  - Configure application, network, and NAT rule collections for granular traffic control.
-  - Enable diagnostic settings for centralized monitoring and troubleshooting.
-  - Support for tagging to ensure traceability and cost management.
-
-  Use this module to enhance the security posture of your Azure environment while maintaining flexibility and scalability.
-
-# How to use this project
 usage: |-
-  Here are some examples of how you can use this module in your inventory structure:
+  ### Example
+
   ```hcl
-    ### Simple Example
-  Here is an example of how you can use this module in your inventory structure:
-  ### Default example
-  ```hcl
-    module "firewall" {
-      depends_on           = [module.name_specific_subnet]
-      source               = "clouddrove/firewall/azure"
-      name                = "app"
-      environment         = "test"
-      resource_group_name = module.resource_group.resource_group_name
-      location            = module.resource_group.resource_group_location
-      subnet_id           = module.name_specific_subnet.subnet_ids["AzureFirewallSubnet"]
-      public_ip_names     = ["ingress", "vnet"] // Name of public ips you want to create.
-
-      # additional_public_ips = [{
-      # name = "public-ip_name",
-      # public_ip_address_id = "public-ip_resource_id"
-      #   } ]
-      firewall_enable            = true
-      policy_rule_enabled        = true
-      enable_diagnostic          = true
-      log_analytics_workspace_id = module.log-analytics.workspace_id
-
-      application_rule_collection = [
-        {
-          name     = "example_app_policy"
-          priority = 200
-          action   = "Allow"
-          rules = [
-            {
-              name              = "app_test"
-              source_addresses  = ["*"] // ["X.X.X.X"]
-              destination_fqdns = ["*"] // ["X.X.X.X"]
-              protocols = [
-                {
-                  port = "443"
-                  type = "Https"
-                },
-                {
-                  port = "80"
-                  type = "Http"
-                }
-              ]
-            }
-          ]
-        }
-      ]
-
-      network_rule_collection = [
-        {
-          name     = "example_network_policy"
-          priority = "100"
-          action   = "Allow"
-          rules = [
-            {
-              name                  = "ssh"
-              protocols             = ["TCP"]
-              source_addresses      = ["*"] // ["X.X.X.X"]
-              destination_addresses = ["*"] // ["X.X.X.X"]
-              destination_ports     = ["22"]
-            }
-
-          ]
-        },
-        {
-          name     = "example_network_policy-2"
-          priority = "101"
-          action   = "Allow"
-          rules = [
-            {
-              name                  = "smtp"
-              protocols             = ["TCP"]
-              source_addresses      = ["*"] // ["X.X.X.X"]
-              destination_addresses = ["*"] // ["X.X.X.X"]
-              destination_ports     = ["587"]
-            }
-          ]
-        }
-      ]
-
-      nat_rule_collection = [
-        {
-          name     = "example_nat_policy-1"
-          priority = "101"
-          rules = [
-            {
-              name                = "http"
-              protocols           = ["TCP"]
-              source_addresses    = ["*"] // ["X.X.X.X"]
-              destination_ports   = ["80"]
-              source_addresses    = ["*"]
-              translated_port     = "80"
-              translated_address  = "X.X.X.X"                            #provide private ip address to translate
-              destination_address = module.firewall.public_ip_addresses["ingress"] //Public ip associated with firewall.
-
-            },
-          ]
-        },
-    }
-
-    ```
-  ### firewall-with-isolated-rules
-  ```hcl
-    module "firewall" {
-    depends_on          = [module.name_specific_subnet]
-    source               = "clouddrove/firewall/azure"
-    name                = "app"
-    environment         = "test"
-    resource_group_name = module.resource_group.resource_group_name
-    location            = module.resource_group.resource_group_location
-    subnet_id           = module.name_specific_subnet.subnet_ids["AzureFirewallSubnet"]
-    public_ip_names     = ["ingress", "vnet"] // Name of public ips you want to create.
-
-    # additional_public_ips = [{
-    # name = "public-ip_name",
-    # public_ip_address_id = "public-ip_resource_id"
-    #   } ]
-    firewall_enable            = true
-    enable_diagnostic          = true
-    log_analytics_workspace_id = module.log-analytics.workspace_id
-
+  module "firewall" {
+    source = "../../"
   }
-  module "firewall-rules" {
-    depends_on         = [module.firewall]
-    source             = "clouddrove/firewall/azure"
-    name               = "app"
-    environment        = "test"
-    policy_rule_enabled= true
-    firewall_policy_id = module.firewall.firewall_policy_id
-
-    application_rule_collection = [
-      {
-        name     = "example_app_policy"
-        priority = 200
-        action   = "Allow"
-        rules = [
-          {
-            name              = "app_test"
-            source_addresses  = ["*"] // ["X.X.X.X"]
-            destination_fqdns = ["*"] // ["X.X.X.X"]
-            protocols = [
-              {
-                port = "443"
-                type = "Https"
-              },
-              {
-                port = "80"
-                type = "Http"
-              }
-            ]
-          }
-        ]
-      }
-    ]
-
-    network_rule_collection = [
-      {
-        name     = "example_network_policy"
-        priority = 100
-        action   = "Allow"
-        rules = [
-          {
-            name                  = "ssh"
-            protocols             = ["TCP"]
-            source_addresses      = ["*"] // ["X.X.X.X"]
-            destination_addresses = ["*"] // ["X.X.X.X"]
-            destination_ports     = ["22"]
-          }
-
-        ]
-      },
-      {
-        name     = "example_network_policy-2"
-        priority = "101"
-        action   = "Allow"
-        rules = [
-          {
-            name                  = "smtp"
-            protocols             = ["TCP"]
-            source_addresses      = ["*"] // ["X.X.X.X"]
-            destination_addresses = ["*"] // ["X.X.X.X"]
-            destination_ports     = ["587"]
-          }
-        ]
-      }
-    ]
-
-    nat_rule_collection = [
-      {
-        name     = "example_nat_policy-1"
-        priority = "101"
-        rules = [
-          {
-            name                = "http"
-            protocols           = ["TCP"]
-            source_addresses    = ["*"] // ["X.X.X.X"]
-            destination_ports   = ["80"]
-            source_addresses    = ["*"]
-            translated_port     = "80"
-            translated_address  = "10.1.1.1"                           #provide private ip address to translate
-            destination_address = module.firewall.public_ip_addresses["ingress"]  //Public ip associated with firewall.
-          },
-          {
-            name                = "https"
-            protocols           = ["TCP"]
-            destination_ports   = ["443"]
-            source_addresses    = ["*"]
-            translated_port     = "443"
-            translated_address  = "10.1.1.1"                           #provide private ip address to translate
-            destination_address = module.firewall.public_ip_addresses["ingress"]  //Public ip associated with firewall
-
-          }
-        ]
-      },
-
-      {
-        name     = "example-nat-policy-2"
-        priority = "100"
-        rules = [
-          {
-            name                = "http"
-            protocols           = ["TCP"]
-            source_addresses    = ["*"] // ["X.X.X.X"]
-            destination_ports   = ["80"]
-            translated_port     = "80"
-            translated_address  = "10.1.1.2"                           #provide private ip address to translate
-            destination_address = module.firewall.public_ip_addresses["ingress"] //Public ip associated with firewall
-          },
-          {
-            name                = "https"
-            protocols           = ["TCP"]
-            source_addresses    = ["*"] // ["X.X.X.X"]
-            destination_ports   = ["443"]
-            translated_port     = "443"
-            translated_address  = "10.1.1.2"                           #provide private ip address to translate
-            destination_address = module.firewall.public_ip_addresses["ingress"] //Public ip associated with firewall
-          }
-        ]
-      }
-    ]
-  }
-
-    ```
+  ```
