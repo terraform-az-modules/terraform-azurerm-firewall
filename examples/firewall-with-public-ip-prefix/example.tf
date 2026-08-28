@@ -42,7 +42,7 @@ module "vnet" {
 module "name_specific_subnet" {
   depends_on           = [module.vnet]
   source               = "terraform-az-modules/subnet/azurerm"
-  version              = "1.0.2"
+  version              = "1.0.3"
   environment          = "test"
   label_order          = ["name", "environment", "location"]
   resource_group_name  = module.resource_group.resource_group_name
